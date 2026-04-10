@@ -1,0 +1,19 @@
+{
+  "name": "ev-smart-assistance",
+  "version": "1.0.0",
+  "description": "EV Smart Route & Charging Assistant",
+  "main": "server.js",
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "cd backend && npm run dev",
+    "client": "cd frontend && npm start",
+    "install-all": "npm install && cd backend && npm install && cd ../frontend && npm install"
+  },
+  "keywords": ["ev", "charging", "route", "assistant"],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
+
