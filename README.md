@@ -283,6 +283,6 @@ Distributed under the **MIT License**. See `LICENSE` for more information.
 ---
 
 <div align="center">
-  <strong>Developed with ❤️ for MCA Final Year Project Submission — 2024</strong><br/>
+  <strong>Developed with ❤️ for MCA Final Year Project Submission — 2026</strong><br/>
   <em>EV Smart Route & Charging Assistant</em>
 </div>
