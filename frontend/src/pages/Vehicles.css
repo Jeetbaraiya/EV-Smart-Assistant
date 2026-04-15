@@ -392,16 +392,163 @@
 }
 
 /* ═══════════════════════════════════════════════
-   RESPONSIVE
+   ENHANCED MOBILE RESPONSIVE — SMARTPHONE OPTIMIZED
 ═══════════════════════════════════════════════ */
 @media (max-width: 900px) {
   .vehicles-grid {
     grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .v-estimate-grid {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .vehicles-page {
+    padding: 1.5rem 0.75rem;
+  }
+
+  .vehicles-header {
+    margin-bottom: 1.75rem;
+  }
+
+  .vehicles-title {
+    font-size: 1.75rem;
+  }
+
+  .vehicles-subtitle {
+    font-size: 0.9rem;
+  }
+
+  .vehicles-header-icon {
+    width: 56px;
+    height: 56px;
+    font-size: 1.75rem;
+    border-radius: 16px;
+    margin-bottom: 1rem;
+  }
+
+  .vehicles-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .v-card {
+    padding: 1.5rem 1.25rem;
+    border-radius: 20px;
+  }
+
+  .v-card-title {
+    font-size: 1rem;
+  }
+
+  .v-form-row {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .v-form-submit-row {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .v-save-btn,
+  .v-cancel-btn {
+    width: 100%;
+    padding: 0.9rem 1rem;
+  }
+
+  .v-estimate-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+
+  /* Table — horizontal scroll */
+  .v-table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 16px;
+  }
+
+  .v-table {
+    min-width: 540px;
+  }
+
+  .v-table thead th {
+    padding: 0.9rem 1rem;
+    font-size: 0.65rem;
+  }
+
+  .v-table tbody tr td {
+    padding: 0.9rem 1rem;
+    font-size: 0.88rem;
+  }
+
+  .v-card-list {
+    padding: 1.5rem 1rem;
   }
 }
 
 @media (max-width: 600px) {
   .v-estimate-grid {
     grid-template-columns: 1fr;
+    gap: 0.6rem;
   }
 }
+
+@media (max-width: 480px) {
+  .vehicles-page {
+    padding: 1rem 0.5rem;
+  }
+
+  .vehicles-title {
+    font-size: 1.5rem;
+  }
+
+  .v-card {
+    padding: 1.25rem 1rem;
+    border-radius: 16px;
+  }
+
+  .v-table {
+    min-width: 480px;
+  }
+
+  .v-table thead th {
+    padding: 0.75rem 0.75rem;
+    font-size: 0.62rem;
+  }
+
+  .v-table tbody tr td {
+    padding: 0.75rem 0.75rem;
+    font-size: 0.82rem;
+  }
+
+  .v-edit-btn, .v-delete-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 0.82rem;
+  }
+
+  .v-card-list {
+    padding: 1.25rem 0.75rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .vehicles-title {
+    font-size: 1.3rem;
+  }
+
+  .v-card {
+    padding: 1rem 0.75rem;
+  }
+
+  .v-form-submit-row button {
+    font-size: 0.9rem;
+    padding: 0.8rem;
+  }
+}
+

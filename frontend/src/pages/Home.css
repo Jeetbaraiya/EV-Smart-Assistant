@@ -46,6 +46,7 @@
   position: relative;
   max-width: 600px;
   padding-left: 150px;
+  min-width: 0;
 }
 
 .hero-badge {
@@ -889,6 +890,216 @@
 @keyframes bounce {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-10px); }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ENHANCED MOBILE RESPONSIVE — SMARTPHONE OPTIMIZED
+═══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .hero {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 2rem 1rem;
+    min-height: auto;
+    padding-top: 3rem;
+  }
+
+  .hero-content {
+    padding-left: 0;
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .hero h1 {
+    font-size: clamp(1.6rem, 7vw, 2.5rem);
+    margin-bottom: 1rem;
+  }
+
+  .hero-subtitle {
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .hero-badge {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.8rem;
+  }
+
+  .hero-stats {
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .stat-number {
+    font-size: 1.2rem;
+  }
+
+  .hero-buttons {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+    justify-content: center;
+  }
+
+  .btn {
+    justify-content: center;
+    width: 100%;
+    padding: 0.9rem 1.5rem;
+  }
+
+  .btn-large {
+    padding: 0.9rem 1.5rem;
+    font-size: 1rem;
+  }
+
+  .hero-visual {
+    height: 220px;
+    width: 100%;
+    margin-top: 1.5rem;
+  }
+
+  .battery-widget-container {
+    display: none;
+  }
+
+  .features-section {
+    padding: 3rem 0;
+  }
+
+  .section-header {
+    margin-bottom: 2rem;
+    padding: 0 1rem;
+  }
+
+  .section-header h2 {
+    font-size: 1.6rem;
+  }
+
+  .section-header p {
+    font-size: 1rem;
+  }
+
+  .features {
+    grid-template-columns: 1fr;
+    padding: 0 1rem;
+  }
+
+  .feature-card {
+    padding: 1.75rem 1.25rem;
+  }
+
+  .workflow-section {
+    padding: 3rem 0;
+  }
+
+  .workflow {
+    padding: 0 1rem;
+  }
+
+  .workflow-step {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.75rem;
+  }
+
+  .step-connector {
+    width: 60px;
+    height: 2px;
+    margin: 0.5rem auto;
+  }
+
+  .cta-section {
+    padding: 3rem 1rem;
+  }
+
+  .cta-content h2 {
+    font-size: 1.6rem;
+  }
+
+  .cta-content p {
+    font-size: 1rem;
+  }
+
+  .cta-buttons {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .map-preview-section {
+    padding: 3rem 1rem;
+  }
+
+  .map-preview-window {
+    height: 300px;
+    border-radius: 16px;
+  }
+
+  .map-ui-searchbar {
+    max-width: 100%;
+  }
+
+  .container {
+    padding: 0 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero {
+    padding: 1.5rem 0.75rem;
+    padding-top: 2.5rem;
+  }
+
+  .hero h1 {
+    font-size: clamp(1.4rem, 8vw, 2rem);
+  }
+
+  .hero-subtitle {
+    font-size: 0.9rem;
+  }
+
+  .feature-card {
+    padding: 1.5rem 1rem;
+  }
+
+  .battery-widget-container {
+    display: none;
+  }
+
+  .floating-card {
+    display: none;
+  }
+
+  .map-preview-window {
+    height: 250px;
+  }
+
+  .step-content h4 {
+    font-size: 1.1rem;
+  }
+
+  .step-content p {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .hero h1 {
+    font-size: 1.3rem;
+  }
+
+  .hero-stats {
+    gap: 0.75rem;
+  }
+
+  .stat-number {
+    font-size: 1rem;
+  }
+
+  .stat-label1 {
+    font-size: 0.8rem;
+  }
 }
 
 /* ══ DARK MODE OVERRIDES ══════════════════════════════════════ */

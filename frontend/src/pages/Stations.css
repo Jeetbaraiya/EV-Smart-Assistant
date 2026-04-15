@@ -682,3 +682,183 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   ENHANCED MOBILE RESPONSIVE — SMARTPHONE OPTIMIZED
+═══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .stations-page {
+    padding: 1rem 0.75rem;
+  }
+
+  .stations-container {
+    padding: 1.5rem 1rem;
+    border-radius: 20px;
+  }
+
+  .stations-container h2 {
+    font-size: 1.4rem;
+  }
+
+  .stations-description {
+    font-size: 0.9rem;
+    margin-bottom: 1.25rem;
+  }
+
+  /* Tabs — horizontal scroll on mobile */
+  .stations-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    gap: 0.5rem;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+    margin-bottom: 1.25rem;
+  }
+
+  .stations-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tab, .tab-active {
+    white-space: nowrap;
+    padding: 0.65rem 1.25rem;
+    font-size: 0.88rem;
+  }
+
+  .btn-refresh-stations {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  /* Station grid — single column */
+  .stations-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .station-card {
+    padding: 1.25rem;
+    border-radius: 16px;
+  }
+
+  /* Location search */
+  .location-search-controls {
+    padding: 1rem;
+  }
+
+  .location-buttons {
+    gap: 0.75rem;
+  }
+
+  .address-input-group {
+    flex-direction: column;
+    max-width: 100%;
+  }
+
+  .btn-search-address {
+    width: 100%;
+  }
+
+  .btn-location {
+    max-width: 100%;
+  }
+
+  .location-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .radius-control {
+    flex-wrap: wrap;
+  }
+
+  .radius-control select {
+    flex: 1;
+  }
+
+  .btn-clear-location {
+    width: 100%;
+  }
+
+  /* Connector modal */
+  .connector-mgmt-modal {
+    max-width: 100% !important;
+    width: 100%;
+    max-height: 95vh;
+  }
+
+  .connector-item-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .conn-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  /* Station specs */
+  .spec-item {
+    gap: 0.75rem;
+  }
+
+  .spec-value {
+    max-width: 58%;
+    font-size: 0.88rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .stations-page {
+    padding: 0.75rem 0.5rem;
+  }
+
+  .stations-container {
+    padding: 1rem 0.75rem;
+    border-radius: 16px;
+  }
+
+  .station-card {
+    padding: 1rem;
+  }
+
+  .station-header h3 {
+    font-size: 1.1rem;
+  }
+
+  .status-badge {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.55rem;
+  }
+
+  .distance-badge {
+    font-size: 0.72rem;
+    padding: 0.3rem 0.6rem;
+  }
+
+  .tab, .tab-active {
+    padding: 0.6rem 1rem;
+    font-size: 0.82rem;
+  }
+
+  .form-grid-mini {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 360px) {
+  .stations-container h2 {
+    font-size: 1.2rem;
+  }
+
+  .station-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}

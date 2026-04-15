@@ -351,10 +351,155 @@
 }
 
 /* ── Responsive ── */
-@media (max-width: 640px) {
-  .my-bookings-container { padding: 1.25rem; }
-  .bookings-header { flex-direction: column; }
-  .bc-station-name { padding-right: 0; }
-  .booking-status-badge { position: static; display: inline-block; margin-bottom: 0.5rem; }
-  .booking-details-grid { grid-template-columns: 1fr 1fr; }
+@media (max-width: 768px) {
+  .my-bookings-container {
+    padding: 1.25rem 0.75rem;
+  }
+
+  .bookings-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .bookings-header-left h1 {
+    font-size: 1.5rem;
+  }
+
+  .bookings-header-right {
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .bookings-refresh-btn,
+  .clear-all-btn {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .booking-card {
+    padding: 1.25rem 1rem;
+    border-radius: 16px;
+  }
+
+  .bc-station-name {
+    padding-right: 0;
+    font-size: 0.95rem;
+  }
+
+  .booking-status-badge {
+    position: static;
+    display: inline-block;
+    margin-bottom: 0.5rem;
+  }
+
+  .booking-details-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .action-row-status {
+    flex-direction: column;
+    gap: 0.6rem;
+    align-items: stretch;
+  }
+
+  .cancel-booking-btn,
+  .delete-history-btn {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .bookings-summary-pills {
+    gap: 0.4rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .my-bookings-container {
+    padding: 1rem 0.5rem;
+  }
+
+  .bookings-header-left h1 {
+    font-size: 1.3rem;
+  }
+
+  .bookings-header-left p {
+    font-size: 0.88rem;
+  }
+
+  .booking-card {
+    padding: 1rem 0.75rem;
+    gap: 0.75rem;
+  }
+
+  .booking-details-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .bc-station-banner {
+    padding: 0.65rem 0.75rem;
+    border-radius: 12px;
+  }
+
+  .bc-station-icon {
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    font-size: 0.85rem;
+    border-radius: 7px;
+  }
+
+  .bc-station-name {
+    font-size: 0.9rem;
+  }
+
+  .bc-station-addr {
+    font-size: 0.72rem;
+  }
+
+  .detail-value {
+    font-size: 0.88rem;
+  }
+
+  .detail-label {
+    font-size: 0.65rem;
+  }
+
+  .no-bookings-card {
+    padding: 3rem 1rem;
+    border-radius: 16px;
+  }
+
+  .no-bookings-icon {
+    font-size: 3rem;
+  }
+
+  .no-bookings-card h3 {
+    font-size: 1.15rem;
+  }
+
+  .book-now-btn {
+    padding: 0.7rem 1.25rem;
+    font-size: 0.92rem;
+  }
+
+  .pill {
+    font-size: 0.72rem;
+    padding: 3px 10px;
+  }
+}
+
+@media (max-width: 360px) {
+  .my-bookings-container {
+    padding: 0.75rem 0.4rem;
+  }
+
+  .bookings-header-left h1 {
+    font-size: 1.15rem;
+  }
+
+  .booking-card {
+    padding: 0.85rem 0.6rem;
+  }
 }

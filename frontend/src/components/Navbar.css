@@ -858,3 +858,140 @@
 .theme-toggle-btn:hover {
   background: rgba(255,255,255,0.28);
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   ENHANCED MOBILE RESPONSIVE — SMARTPHONE OPTIMIZED
+   Breakpoints: 768px (tablet/large phone), 480px (small phone), 360px (very small)
+═══════════════════════════════════════════════════════════════ */
+
+/* Base mobile adjustments */
+@media (max-width: 768px) {
+  .navbar {
+    padding: 0;
+  }
+
+  .navbar-container {
+    height: 56px;
+    padding: 0 1rem;
+  }
+
+  .brand-primary {
+    font-size: 1.1rem;
+  }
+
+  .brand-secondary {
+    font-size: 0.72rem;
+  }
+
+  .nav-user-info {
+    padding: 0.4rem 0.85rem;
+  }
+
+  .nav-user-info .username {
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+  }
+
+  .premium-logout-btn {
+    padding: 0.4rem 0.85rem !important;
+    font-size: 0.85rem !important;
+  }
+
+  /* Prevent navbar-menu from overflowing body */
+  .navbar-menu {
+    display: flex !important;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  /* Links more touch-friendly */
+  .nav-link {
+    padding: 0.85rem 1rem;
+    font-size: 0.95rem;
+    border-radius: 10px;
+  }
+
+  /* Stretch user info full width */
+  .nav-user-info {
+    width: 100%;
+    border-radius: 14px;
+  }
+
+  /* Logout button full-width in mobile menu */
+  .premium-logout-btn {
+    width: 100%;
+    justify-content: center !important;
+  }
+  
+  /* Nav auth stacked vertical */
+  .nav-guest {
+    flex-direction: column;
+    width: 100%;
+    gap: 0.75rem;
+  }
+
+  .home-guest-link {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+    border-radius: 12px !important;
+    padding: 0.9rem 1rem !important;
+  }
+}
+
+/* Small phones 480px */
+@media (max-width: 480px) {
+  .navbar-container {
+    height: 52px;
+    padding: 0 0.75rem;
+  }
+
+  .brand-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+  }
+
+  .lightning {
+    font-size: 1.2rem;
+  }
+
+  .brand-primary {
+    font-size: 1rem;
+  }
+
+  .brand-secondary {
+    display: none;
+  }
+
+  .navbar-menu {
+    width: 100vw;
+    padding: 4rem 1.25rem 2rem;
+    right: -100vw;
+  }
+
+  .navbar-menu.mobile-open {
+    right: 0;
+  }
+
+  .nav-link {
+    font-size: 0.9rem;
+    letter-spacing: 0.5px;
+  }
+}
+
+/* Very small phones 360px */
+@media (max-width: 360px) {
+  .navbar-container {
+    height: 50px;
+    padding: 0 0.5rem;
+  }
+
+  .brand-primary {
+    font-size: 0.9rem;
+  }
+
+  .mobile-menu-toggle span {
+    width: 22px;
+  }
+}
