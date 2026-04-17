@@ -91,10 +91,11 @@ function FitBounds({ coords }) {
     return null;
 }
 
-const RouteMap = ({ originCoords, destCoords, distance, stations = [], useStationsAsWaypoints = false, pathCoordinates = null, waypoints = [] }) => {
+const RouteMap = ({ originCoords, destCoords, distance, stations = [], useStationsAsWaypoints = false, pathCoordinates = null, waypoints = [], currentRange = Infinity, isDefaultReachable = undefined }) => {
     const { getToken, isAuthenticated } = useAuth();
     const [selectedStationForBooking, setSelectedStationForBooking] = useState(null);
-    const [routeData, setRouteData] = useState([]);
+    const [mainRoute, setMainRoute] = useState(null);
+    const [altRoutes, setAltRoutes] = useState([]);
     const [loading, setLoading] = useState(false);
 
     // Debug log to confirm stations arrived on frontend
@@ -109,7 +110,7 @@ const RouteMap = ({ originCoords, destCoords, distance, stations = [], useStatio
             fetchRoute();
         }
         // Include stations and pathCoordinatesString in dependencies so optimized legs redraw correctly without reference-based infinite loops
-    }, [originCoords, destCoords, stations, pathCoordinatesString]);
+    }, [originCoords, destCoords, stations, pathCoordinatesString, currentRange, isDefaultReachable]);
 
     const fetchLegRoute = async (from, to) => {
         const url = `https://router.project-osrm.org/route/v1/driving/${from.lon},${from.lat};${to.lon},${to.lat}?overview=full&geometries=geojson`;
@@ -117,9 +118,15 @@ const RouteMap = ({ originCoords, destCoords, distance, stations = [], useStatio
         const data = await response.json();
 
         if (data.routes && data.routes.length > 0) {
-            return data.routes[0].geometry.coordinates.map(coord => [coord[1], coord[0]]);
+            return {
+                coords: data.routes[0].geometry.coordinates.map(coord => [coord[1], coord[0]]),
+                distanceKm: data.routes[0].distance / 1000
+            };
         }
-        return [[from.lat, from.lon], [to.lat, to.lon]];
+        return {
+            coords: [[from.lat, from.lon], [to.lat, to.lon]],
+            distanceKm: 0
+        };
     };
 
     const fetchRoute = async () => {
@@ -135,15 +142,68 @@ const RouteMap = ({ originCoords, destCoords, distance, stations = [], useStatio
                     coordString = waypoints.map(wp => `${wp.lon},${wp.lat}`).join(';');
                 }
 
-                const url = `https://router.project-osrm.org/route/v1/driving/${coordString}?overview=full&geometries=geojson`;
+                const url = `https://router.project-osrm.org/route/v1/driving/${coordString}?overview=full&geometries=geojson&alternatives=3`;
                 const response = await fetch(url);
                 const data = await response.json();
 
                 if (data.routes && data.routes.length > 0) {
-                    const coords = data.routes[0].geometry.coordinates.map(coord => [coord[1], coord[0]]);
-                    setRouteData(coords);
+                    const processRoute = (r, isMain = false) => {
+                        const coords = r.geometry.coordinates.map(coord => [coord[1], coord[0]]);
+                        const dKm = r.distance / 1000;
+                        
+                        let reachable = dKm <= currentRange;
+                        // Only force match parent the UI banner if it's the primary route, 
+                        // so vastly longer alternate routes remain accurately unreachable.
+                        if (isMain && isDefaultReachable !== undefined) {
+                            reachable = isDefaultReachable;
+                        }
+                        
+                        return { coords, distanceKm: dKm, isReachable: reachable };
+                    };
+                    
+                    setMainRoute(processRoute(data.routes[0], true));
+                    
+                    let alts = [];
+                    if (data.routes.length > 1) {
+                        alts = data.routes.slice(1).map(processRoute);
+                    }
+
+                    // Simulated Alternative Routes if OSRM doesn't return them
+                    if (alts.length === 0 && !hasPath && (!waypoints || waypoints.length <= 2)) {
+                        try {
+                            const dx = destCoords.lon - originCoords.lon;
+                            const dy = destCoords.lat - originCoords.lat;
+                            const midX = originCoords.lon + dx / 2;
+                            const midY = originCoords.lat + dy / 2;
+
+                            const offset1 = 0.12; 
+                            const offset2 = 0.08; 
+
+                            const p1Lon = midX - dy * offset1;
+                            const p1Lat = midY + dx * offset1;
+                            
+                            const p2Lon = midX + dy * offset2;
+                            const p2Lat = midY - dx * offset2;
+
+                            const alt1Url = `https://router.project-osrm.org/route/v1/driving/${originCoords.lon},${originCoords.lat};${p1Lon},${p1Lat};${destCoords.lon},${destCoords.lat}?overview=full&geometries=geojson`;
+                            const alt2Url = `https://router.project-osrm.org/route/v1/driving/${originCoords.lon},${originCoords.lat};${p2Lon},${p2Lat};${destCoords.lon},${destCoords.lat}?overview=full&geometries=geojson`;
+
+                            const [res1, res2] = await Promise.all([fetch(alt1Url), fetch(alt2Url)]);
+                            const data1 = await res1.json();
+                            const data2 = await res2.json();
+
+                            if (data1.routes && data1.routes.length > 0) alts.push(processRoute(data1.routes[0]));
+                            if (data2.routes && data2.routes.length > 0) alts.push(processRoute(data2.routes[0]));
+                        } catch (e) {
+                            console.error("Alternative route sim failed", e);
+                        }
+                    }
+
+                    setAltRoutes(alts);
                 } else {
-                    setRouteData([[originCoords.lat, originCoords.lon], [destCoords.lat, destCoords.lon]]);
+                    const fallback = { coords: [[originCoords.lat, originCoords.lon], [destCoords.lat, destCoords.lon]], distanceKm: 0, isReachable: isDefaultReachable !== undefined ? isDefaultReachable : true };
+                    setMainRoute(fallback);
+                    setAltRoutes([]);
                 }
                 return;
             }
@@ -162,15 +222,20 @@ const RouteMap = ({ originCoords, destCoords, distance, stations = [], useStatio
             }
 
             const combined = [];
+            let totalD = 0;
             for (let i = 0; i < points.length - 1; i++) {
-                const segment = await fetchLegRoute(points[i], points[i + 1]);
-                if (combined.length > 0) combined.push(...segment.slice(1));
-                else combined.push(...segment);
+                const segmentData = await fetchLegRoute(points[i], points[i + 1]);
+                if (combined.length > 0) combined.push(...segmentData.coords.slice(1));
+                else combined.push(...segmentData.coords);
+                totalD += segmentData.distanceKm;
             }
-            setRouteData(combined);
+            setMainRoute({ coords: combined, distanceKm: totalD, isReachable: isDefaultReachable !== undefined ? isDefaultReachable : (totalD <= currentRange) });
+            setAltRoutes([]);
         } catch (error) {
             console.error("OSRM Route Error:", error);
-            setRouteData([[originCoords.lat, originCoords.lon], [destCoords.lat, destCoords.lon]]);
+            const fallback = { coords: [[originCoords.lat, originCoords.lon], [destCoords.lat, destCoords.lon]], distanceKm: 0, isReachable: true };
+            setMainRoute(fallback);
+            setAltRoutes([]);
         } finally {
             setLoading(false);
         }
@@ -248,9 +313,54 @@ const RouteMap = ({ originCoords, destCoords, distance, stations = [], useStatio
                     </Marker>
                 ))}
 
-                {/* Route Polyline (Actual Road) */}
-                {routeData.length > 0 && (
-                    <Polyline positions={routeData} color="#4f46e5" weight={6} opacity={0.8} lineJoin="round" />
+                {/* Alternative Routes */}
+                {altRoutes
+                  .filter(alt => mainRoute?.isReachable ? alt.isReachable : true)
+                  .map((alt, idx) => (
+                    <Polyline 
+                        key={`alt-${idx}-${alt.isReachable}`} 
+                        positions={alt.coords} 
+                        pathOptions={{
+                            color: alt.isReachable ? "#22c55e" : "#ef4444",
+                            weight: 4,
+                            opacity: 0.5,
+                            lineJoin: "round"
+                        }}
+                        eventHandlers={{
+                            click: () => {
+                                const newMain = alt;
+                                const newAlts = [...altRoutes];
+                                newAlts[idx] = mainRoute;
+                                setMainRoute(newMain);
+                                setAltRoutes(newAlts);
+                            }
+                        }}
+                    >
+                        <Popup>
+                            <b>{alt.isReachable ? "🟢 Reachable" : "🔴 Not Reachable"}</b><br/>
+                            Distance: {alt.distanceKm.toFixed(1)} km
+                            <br/><br/><i>Click to select this route</i>
+                        </Popup>
+                    </Polyline>
+                ))}
+
+                {/* Main Route */}
+                {mainRoute && mainRoute.coords && mainRoute.coords.length > 0 && (
+                    <Polyline 
+                        key={`main-${mainRoute.isReachable}`}
+                        positions={mainRoute.coords} 
+                        pathOptions={{
+                            color: mainRoute.isReachable ? "#16a34a" : "#dc2626",
+                            weight: 8,
+                            opacity: 0.9,
+                            lineJoin: "round"
+                        }}
+                    >
+                        <Popup>
+                            <b>Main Route ({mainRoute.isReachable ? "Reachable" : "Not Reachable"})</b><br/>
+                            Distance: {mainRoute.distanceKm.toFixed(1)} km
+                        </Popup>
+                    </Polyline>
                 )}
 
                 {/* Charging Stations Markers */}
@@ -307,6 +417,8 @@ const RouteMap = ({ originCoords, destCoords, distance, stations = [], useStatio
                 <span>🟢 Start</span>
                 <span>🔴 End</span>
                 <span>⚡ Charging Station</span>
+                <span><span style={{color: '#22c55e', fontWeight: 'bold'}}>—</span> Reachable</span>
+                <span><span style={{color: '#ef4444', fontWeight: 'bold'}}>—</span> Not Reachable</span>
             </div>
 
             {selectedStationForBooking && (

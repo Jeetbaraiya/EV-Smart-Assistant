@@ -111,7 +111,7 @@ const RouteCheck = () => {
   // ── Main Submit ────────────────────────────────────────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(''); setLoading(true); setResult(null); setOptimizedRoute(null);
+    setError(''); setLoading(true);
 
     try {
       // ── 1. Parse inputs ──────────────────────────────────────────────
@@ -236,7 +236,7 @@ const RouteCheck = () => {
   // ── Optimize Route ─────────────────────────────────────────────────────
   const handleOptimizeRoute = async () => {
     if (!routeCoords.origin || !routeCoords.dest) { setError('Please set Origin and Destination first.'); return; }
-    setError(''); setOptimizing(true); setOptimizedRoute(null);
+    setError(''); setOptimizing(true);
     try {
       const res = await fetch(`${API_URL}/calculator/optimize-route`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -476,8 +476,10 @@ const RouteCheck = () => {
                   <RouteMap
                     originCoords={routeCoords.origin} destCoords={routeCoords.dest}
                     distance={optimizedRoute?.totalDistanceKm || result.distance.kilometers}
-                    stations={optimizedRoute?.optimized ? optimizedRoute.stops : (result.chargingStations?.stations || []).slice(0, 8)}
+                    stations={optimizedRoute?.optimized ? optimizedRoute.stops : (result.chargingStations?.stations || [])}
                     useStationsAsWaypoints={!!optimizedRoute?.optimized}
+                    currentRange={result.currentRange?.kilometers || result.currentRange}
+                    isDefaultReachable={result.isReachable}
                   />
                 )}
 

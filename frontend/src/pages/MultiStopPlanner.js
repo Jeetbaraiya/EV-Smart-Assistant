@@ -96,7 +96,7 @@ const MultiStopPlanner = () => {
   };
 
   const handlePlanMultiStop = async () => {
-    setPlannerLoading(true); setError(''); setMultiStopPlan(null);
+    setPlannerLoading(true); setError('');
     try {
       const points = await parseMultiStopPoints();
       if (!points) { setError('Enter format like: Ahmedabad -> Udaipur -> Jaipur'); setPlannerLoading(false); return; }
