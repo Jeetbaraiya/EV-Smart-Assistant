@@ -338,7 +338,7 @@ const RouteCheck = () => {
                     {user ? (
                       vehicles.length > 0 ? (
                         <select value={selectedVehicleId} onChange={handleVehicleSelect} className="vehicle-selector">
-                          <option value="">-- Choose from your fleet --</option>
+                          <option value="">-- Choose from your vehicle --</option>
                           {vehicles.map(v => (
                             <option key={v.id} value={v.id}>{v.name} ({v.battery_capacity || v.battery}kWh)</option>
                           ))}
@@ -346,7 +346,7 @@ const RouteCheck = () => {
                       ) : (
                         <div className="no-vehicles-info">
                           <span>No vehicles found.</span>
-                          <Link to="/vehicles" className="inline-link">Add one in Fleet Management</Link>
+                          <Link to="/vehicles" className="inline-link">Add one in Vehicle Management</Link>
                         </div>
                       )
                     ) : (
@@ -359,23 +359,23 @@ const RouteCheck = () => {
                   <div className="form-group form-group-4">
                     <label>Battery (%)</label>
                     <input type="number" name="batteryPercentage" value={formData.batteryPercentage}
-                      onChange={handleChange} required min="1" max="100" />
+                      onChange={handleChange} required min="1" max="100" step="0.1" />
                   </div>
                   <div className="form-group form-group-4">
                     <label>Capacity (kWh)</label>
                     <input type="number" name="batteryCapacity" value={formData.batteryCapacity}
-                      onChange={handleChange} required min="1" />
+                      onChange={handleChange} required min="1" step="0.1" />
                   </div>
                   <div className="form-group form-group-4">
                     <label>Eff. (kWh/100km)</label>
                     <input type="number" name="efficiency" value={formData.efficiency}
-                      onChange={handleChange} required min="1" />
+                      onChange={handleChange} required min="0.1" step="0.1" />
                   </div>
 
                   <div className="form-group form-group-4">
                     <label>Speed (km/h)</label>
                     <input type="number" name="speedKmph" value={formData.speedKmph}
-                      onChange={handleChange} required min="5" />
+                      onChange={handleChange} required min="5" step="1" />
                   </div>
                   <div className="form-group form-group-4">
                     <label>Traffic</label>
