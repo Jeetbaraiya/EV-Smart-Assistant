@@ -673,6 +673,10 @@
               width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.sidebar-mobile-toggle, .sidebar-overlay {
+  display: none;
+}
+
 /* ═══════════════════════════════════════════════════════════════
    MOBILE — top navbar for small screens even when authed
 ═══════════════════════════════════════════════════════════════ */
@@ -688,10 +692,66 @@
     width: 260px;
     transform: translateX(-100%);
   }
+  
+  .sidebar.mobile-open {
+    transform: translateX(0);
+  }
+
+  .sidebar-mobile-toggle {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    z-index: 1002;
+    background: #6C63FF;
+    border: none;
+    border-radius: 8px;
+    width: 44px;
+    height: 44px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(108, 99, 255, 0.4);
+    transition: all 0.3s;
+  }
+  
+  .sidebar-mobile-toggle span {
+    display: block;
+    width: 20px;
+    height: 2px;
+    background: white;
+    margin: 3px 0;
+    border-radius: 2px;
+    transition: all 0.3s ease;
+  }
+  
+  .sidebar-mobile-toggle.active span:nth-child(1) {
+    transform: rotate(-45deg) translate(-5px, 6px);
+  }
+  .sidebar-mobile-toggle.active span:nth-child(2) {
+    opacity: 0;
+  }
+  .sidebar-mobile-toggle.active span:nth-child(3) {
+    transform: rotate(45deg) translate(-5px, -6px);
+  }
+
+  .sidebar-overlay {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.5);
+    z-index: 999;
+    backdrop-filter: blur(2px);
+  }
 
   .App.with-sidebar .main-content {
     margin-left: 0;
     width: 100%;
+    padding-top: 60px; /* Space for the floating button */
   }
 
   /* Top navbar mobile */

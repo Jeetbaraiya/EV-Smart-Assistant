@@ -20,6 +20,7 @@ const IconMail = () => (
 const AdminOwners = () => {
   const { getToken } = useAuth();
   const [owners, setOwners]   = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState('');
   const [success, setSuccess] = useState('');
@@ -105,6 +106,17 @@ const AdminOwners = () => {
           </button>
         </header>
 
+        <div className="admin-search-container">
+          <div className="admin-search-icon">🔍</div>
+          <input 
+              type="text" 
+              placeholder="Search by name, phone, email..." 
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              className="admin-search-input"
+          />
+        </div>
+
         {error   && <div className="error-message">{error}</div>}
         {success && <div className="success-message">{success}</div>}
 
@@ -125,7 +137,10 @@ const AdminOwners = () => {
                 </tr>
               </thead>
               <tbody>
-                {owners.map((o) => (
+                {owners.filter(o => 
+                  (o.username || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+                  (o.email || '').toLowerCase().includes(searchTerm.toLowerCase())
+                ).map((o) => (
                   <tr key={o.id}>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>

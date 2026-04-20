@@ -1326,6 +1326,27 @@
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
 }
 
+/* ═══════════════════════════════════════════════
+   UTILITY CLASSES (REPLACING INLINE GRIDS)
+═══════════════════════════════════════════════ */
+.admin-dashboard-row {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.admin-dashboard-chart-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+}
+
+/* ═══════════════════════════════════════════════
+   CHARTS & GRAPHS
+   ═══════════════════════════════════════════════ */
+
 /* ═══════════════════════════════════════════════════════════════
    ENHANCED MOBILE RESPONSIVE — SMARTPHONE OPTIMIZED
 ═══════════════════════════════════════════════════════════════ */
@@ -1342,6 +1363,12 @@
   .dashboard-container h2 {
     font-size: 1.4rem;
     margin-bottom: 1.25rem;
+  }
+
+  .admin-dashboard-row,
+  .admin-dashboard-chart-row {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
   }
 
   .dashboard-header {
@@ -1391,11 +1418,12 @@
   .table-container {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-    border-radius: 16px;
+    width: 100%;
+    border-radius: 0 0 16px 16px;
   }
 
   .admin-table {
-    min-width: 580px;
+    min-width: 600px;
   }
 
   .admin-table th,
@@ -1487,4 +1515,50 @@
     grid-template-columns: 1fr 1fr;
   }
 }
-
+
+/* ── Search Bar ───────────────────────────────────────── */
+.admin-search-container {
+  display: flex;
+  align-items: center;
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 0.6rem 1rem;
+  width: 100%;
+  max-width: 400px;
+  margin-bottom: 2rem;
+  border: 1px solid #cbd5e1;
+  transition: all 0.2s;
+}
+
+@media (max-width: 768px) {
+  .admin-search-container {
+    max-width: 100% !important;
+  }
+}
+
+.admin-search-container:focus-within {
+  background: #ffffff;
+  border-color: #6C63FF;
+  box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.15);
+}
+
+.admin-search-container .admin-search-input {
+  background: transparent;
+  border: none;
+  color: #1e293b;
+  outline: none;
+  width: 100%;
+  padding-left: 0.5rem;
+  font-size: 0.95rem;
+}
+
+.admin-search-container .admin-search-input::placeholder {
+  color: #94a3b8;
+}
+
+.admin-search-icon {
+  color: #64748b;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}

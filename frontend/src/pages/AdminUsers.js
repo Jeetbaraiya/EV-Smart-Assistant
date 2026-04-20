@@ -20,6 +20,7 @@ const IconMail = () => (
 const AdminUsers = () => {
   const { getToken } = useAuth();
   const [users, setUsers] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -79,6 +80,17 @@ const AdminUsers = () => {
           </button>
         </header>
 
+        <div className="admin-search-container">
+          <div className="admin-search-icon">🔍</div>
+          <input 
+              type="text" 
+              placeholder="Search by name, phone, email..." 
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              className="admin-search-input"
+          />
+        </div>
+
         {error && <div className="error-message">{error}</div>}
 
         {loading ? (
@@ -98,7 +110,10 @@ const AdminUsers = () => {
                 </tr>
               </thead>
               <tbody>
-                {users.map((u) => (
+                {users.filter(u => 
+                  (u.username || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+                  (u.email || '').toLowerCase().includes(searchTerm.toLowerCase())
+                ).map((u) => (
                   <tr key={u.id}>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>

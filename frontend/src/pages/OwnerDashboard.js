@@ -206,7 +206,7 @@ const OwnerDashboard = () => {
         </div>
 
         {/* ── Charts Section ─────────────────────────────── */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '1.5rem', marginBottom: '2.5rem' }}>
+        <div className="admin-dashboard-chart-row">
           <div className="chart-panel">
             <h4>📈 Revenue & Usage Performance (Last 14 Days)</h4>
             <ResponsiveContainer width="100%" height={300}>

@@ -2,12 +2,16 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 /* Override for sidebar layout — handled by Navbar.css */
 .main-content {
   flex: 1;
   min-height: 100vh;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 

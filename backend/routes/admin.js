@@ -292,7 +292,7 @@ router.get('/stats', (req, res) => {
   dbInstance.all(
     `SELECT 
         cs.id, 
-        COALESCE(cs.status, 'available') as db_status,
+        COALESCE(cs.availability, 'available') as db_status,
         (SELECT COUNT(*) FROM bookings b 
          WHERE b.station_id = cs.id 
          AND LOWER(b.status) = 'confirmed' 
@@ -305,7 +305,8 @@ router.get('/stats', (req, res) => {
       if (!err) {
         const dist = { available: 0, busy: 0, offline: 0 };
         (rows || []).forEach(r => {
-          if (r.db_status === 'offline') {
+          const statusStr = (r.db_status || '').toLowerCase();
+          if (statusStr === 'unavailable' || statusStr === 'offline' || statusStr === 'maintenance') {
             dist.offline++;
           } else if (r.active_bookings > 0) {
             dist.busy++;
@@ -313,6 +314,11 @@ router.get('/stats', (req, res) => {
             dist.available++;
           }
         });
+        
+        // Ensure INDIA stations are counted as available if they aren't in DB
+        // But since dbStations + INDIA_COUNT is total, we should add INDIA_COUNT to available
+        dist.available += INDIA_COUNT;
+        
         stats.stationStatusDistribution = dist;
       }
       checkDone();

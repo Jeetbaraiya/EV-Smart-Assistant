@@ -64,8 +64,8 @@ const IconLogout = () => (
 const IconLogin = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
-    <polyline points="10 17 5 12 10 7" />
-    <line x1="15" y1="12" x2="5" y2="12" />
+    <polyline points="10 17 15 12 10 7" />
+    <line x1="15" y1="12" x2="3" y2="12" />
   </svg>
 );
 
@@ -159,11 +159,26 @@ const Navbar = () => {
     setIsRouteDropdownOpen(false);
   };
 
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   // ── Admin or Owner: Left Sidebar ─────────────────────────────────────────────
   if (isAuthenticated && (isAdmin || isOwner)) {
     return (
-      <aside className="sidebar">
-        <div className="sidebar-brand">
+      <>
+        <button 
+          className={`sidebar-mobile-toggle ${isSidebarOpen ? 'active' : ''}`}
+          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          aria-label="Toggle sidebar"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        
+        {isSidebarOpen && <div className="sidebar-overlay" onClick={() => setIsSidebarOpen(false)}></div>}
+
+        <aside className={`sidebar ${isSidebarOpen ? 'mobile-open' : ''}`}>
+          <div className="sidebar-brand">
           <Link to="/" className="sidebar-logo">
             <div className="brand-icon">
               <span className="lightning"><IconLightning /></span>
@@ -178,19 +193,19 @@ const Navbar = () => {
         <nav className="sidebar-nav">
           {isAdmin && (
             <>
-              <NavLink to="/admin/dashboard" className="sidebar-link" title="Platform Insights">
+              <NavLink to="/admin/dashboard" className="sidebar-link" title="Platform Insights" onClick={() => setIsSidebarOpen(false)}>
                 <span className="nav-icon"><IconDashboard /></span>
                 <span>Dashboard</span>
               </NavLink>
-              <NavLink to="/admin/users" className="sidebar-link" title="User Directory">
+              <NavLink to="/admin/users" className="sidebar-link" title="User Directory" onClick={() => setIsSidebarOpen(false)}>
                 <span className="nav-icon"><IconUsers /></span>
                 <span>User Directory</span>
               </NavLink>
-              <NavLink to="/admin/owners" className="sidebar-link" title="Owners Management">
+              <NavLink to="/admin/owners" className="sidebar-link" title="Owners Management" onClick={() => setIsSidebarOpen(false)}>
                 <span className="nav-icon"><IconOwner /></span>
                 <span>Owners</span>
               </NavLink>
-              <NavLink to="/admin/stations" className="sidebar-link" title="Stations Management">
+              <NavLink to="/admin/stations" className="sidebar-link" title="Stations Management" onClick={() => setIsSidebarOpen(false)}>
                 <span className="nav-icon"><IconStation /></span>
                 <span>Stations</span>
               </NavLink>
@@ -199,15 +214,15 @@ const Navbar = () => {
 
           {isOwner && (
             <>
-              <NavLink to="/owner/dashboard" className="sidebar-link" title="Owner Dashboard">
+              <NavLink to="/owner/dashboard" className="sidebar-link" title="Owner Dashboard" onClick={() => setIsSidebarOpen(false)}>
                 <span className="nav-icon"><IconDashboard /></span>
                 <span>Dashboard</span>
               </NavLink>
-              <NavLink to="/owner/my-stations" className="sidebar-link" title="My Stations Management">
+              <NavLink to="/owner/my-stations" className="sidebar-link" title="My Stations Management" onClick={() => setIsSidebarOpen(false)}>
                 <span className="nav-icon"><IconStation /></span>
                 <span>My Stations</span>
               </NavLink>
-              <NavLink to="/owner/bookings" className="sidebar-link" title="View Station Reservations">
+              <NavLink to="/owner/bookings" className="sidebar-link" title="View Station Reservations" onClick={() => setIsSidebarOpen(false)}>
                 <span className="nav-icon"><IconCalendar /></span>
                 <span>Reservations</span>
               </NavLink>
@@ -216,7 +231,7 @@ const Navbar = () => {
         </nav>
 
         <div className="sidebar-footer">
-          <Link to="/profile" className="sidebar-user" title="View my profile">
+          <Link to="/profile" className="sidebar-user" title="View my profile" onClick={() => setIsSidebarOpen(false)}>
             <span className="btn-icon" style={{ marginRight: '0.85rem', color: 'white' }}>
               {isAdmin && <IconAdmin />}
               {!isAdmin && !isOwner && <IconEVUser />}
@@ -224,12 +239,13 @@ const Navbar = () => {
             </span>
             <span className="username" style={{ color: 'white', textTransform: 'uppercase' }}>{user?.username?.toUpperCase()}</span>
           </Link>
-          <button onClick={handleLogout} className="premium-logout-btn" title="Logout">
+          <button onClick={() => { setIsSidebarOpen(false); handleLogout(); }} className="premium-logout-btn" title="Logout">
             <span className="btn-icon"><IconLogout /></span>
             <span>LOGOUT</span>
           </button>
         </div>
       </aside>
+      </>
     );
   }
 
@@ -311,7 +327,7 @@ const Navbar = () => {
             <div className="nav-auth">
               {isAuthenticated ? (
                 <div className="nav-authenticated">
-                  <Link to="/profile" className="nav-user-info" title="View Profile">
+                  <Link to="/profile" className="nav-user-info" title="View Profile" onClick={closeMobileMenu}>
                     <span className="btn-icon" style={{ marginRight: '0.75rem', color: 'white' }}>
                       {isAdmin && <IconAdmin />}
                       {isOwner && <IconOwner />}
@@ -319,7 +335,7 @@ const Navbar = () => {
                     </span>
                     <span className="username">{user?.username?.toUpperCase()}</span>
                   </Link>
-                  <button onClick={handleLogout} className="premium-logout-btn" title="Logout">
+                  <button onClick={() => { closeMobileMenu(); handleLogout(); }} className="premium-logout-btn" title="Logout">
                     <span className="btn-icon"><IconLogout /></span>
                     <span>LOGOUT</span>
                   </button>

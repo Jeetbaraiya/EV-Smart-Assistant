@@ -25,6 +25,7 @@ const OwnerStations = () => {
   });
   const [reviewState, setReviewState] = useState({});
   const [hoveredRatingStation, setHoveredRatingStation] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
@@ -296,12 +297,24 @@ const OwnerStations = () => {
 
         {/* ── Table Section ──────────────────────────────── */}
         <div className="modern-table-card">
-          <div style={{ padding: '1.5rem 2rem', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ padding: '1.5rem 2rem', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
             <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, color: '#1e293b' }}>🔌 My Assets</h3>
+            
+            <div className="admin-search-container" style={{ margin: 0, flex: 1, maxWidth: '400px' }}>
+              <div className="admin-search-icon">🔍</div>
+              <input 
+                  type="text" 
+                  placeholder="Search by name, city, state..." 
+                  value={searchTerm}
+                  onChange={e => setSearchTerm(e.target.value)}
+                  className="admin-search-input"
+              />
+            </div>
+
             <div style={{ fontSize: '0.9rem', color: '#64748b', fontWeight: 700 }}>Total: {stations.length} stations</div>
           </div>
           
-          <div className="table-responsive">
+          <div className="table-container">
             <table className="admin-table">
               <thead>
                 <tr>
@@ -314,7 +327,12 @@ const OwnerStations = () => {
                 </tr>
               </thead>
               <tbody>
-                {stations.map((s) => (
+                {stations.filter(s => 
+                  (s.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+                  (s.city || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  (s.state || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  (s.address || '').toLowerCase().includes(searchTerm.toLowerCase())
+                ).map((s) => (
                   <tr key={s.id}>
                     <td>
                       <div style={{ fontWeight: 800, color: '#1e293b' }}>{s.name}</div>

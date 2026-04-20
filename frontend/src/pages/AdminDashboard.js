@@ -241,7 +241,7 @@ const AdminDashboard = () => {
                 </div>
 
                 {/* ── second row: power + summary ────────────── */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1.5rem', marginBottom: '2rem' }}>
+                <div className="admin-dashboard-row">
                   {/* Power capacity card */}
                   <div className="stat-card" style={{
                     background: 'linear-gradient(135deg, #6C63FF 0%, #4f46e5 100%)',
@@ -285,7 +285,7 @@ const AdminDashboard = () => {
                 </div>
 
                 {/* ── Charts ─────────────────────────────────── */}
-                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.5rem', marginBottom: '2.5rem' }}>
+                <div className="admin-dashboard-chart-row">
                   <div className="stat-card" style={{ borderTop: 'none' }}>
                     <h4 style={{ margin: '0 0 1.25rem', fontWeight: 700, color: '#1e293b', fontSize: '1rem' }}>📈 Usage Trend</h4>
                     <ResponsiveContainer width="100%" height={260}>

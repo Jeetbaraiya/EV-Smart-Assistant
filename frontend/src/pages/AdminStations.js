@@ -21,6 +21,7 @@ const IconOwner = () => (
 const AdminStations = () => {
   const { getToken } = useAuth();
   const [stations, setStations] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading]   = useState(true);
   const [error, setError]       = useState('');
   const [success, setSuccess]   = useState('');
@@ -106,6 +107,17 @@ const AdminStations = () => {
           </button>
         </header>
 
+        <div className="admin-search-container">
+          <div className="admin-search-icon">🔍</div>
+          <input 
+              type="text" 
+              placeholder="Search by name, location..." 
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              className="admin-search-input"
+          />
+        </div>
+
         {error   && <div className="error-message">{error}</div>}
         {success && <div className="success-message">{success}</div>}
 
@@ -126,7 +138,12 @@ const AdminStations = () => {
                 </tr>
               </thead>
               <tbody>
-                {stations.map((s) => (
+                {stations.filter(s => 
+                  (s.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+                  (s.city || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  (s.state || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  (s.owner_name || '').toLowerCase().includes(searchTerm.toLowerCase())
+                ).map((s) => (
                   <tr key={s.id}>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
