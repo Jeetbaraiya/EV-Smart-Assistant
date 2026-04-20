@@ -11,7 +11,8 @@ const IconEyeOff = () => (
 );
 
 const ChangeEmailModal = ({ isOpen, onClose }) => {
-  const { requestEmailChange, verifyEmailChange, user } = useAuth();
+  const { requestEmailChange, verifyEmailChange, directEmailChange, user, isAdmin, isOwner } = useAuth();
+  const canBypassOtp = isAdmin || isOwner;
   
   const [step, setStep] = useState(1); // 1 = Request, 2 = Verify OTP
   const [formData, setFormData] = useState({
@@ -31,6 +32,24 @@ const ChangeEmailModal = ({ isOpen, onClose }) => {
 
     if (formData.newEmail === user?.email) {
       return setStatus({ type: 'error', message: 'New email must be different from current email.' });
+    }
+
+    if (canBypassOtp) {
+      setLoading(true);
+      try {
+        const res = await directEmailChange(formData.newEmail, formData.currentPassword);
+        if (res.success) {
+          setStatus({ type: 'success', message: 'Email updated successfully!' });
+          setTimeout(() => handleClose(), 2000);
+        } else {
+          setStatus({ type: 'error', message: res.error || 'Failed to update email.' });
+        }
+      } catch (err) {
+        setStatus({ type: 'error', message: 'Network error. Please try again.' });
+      } finally {
+        setLoading(false);
+      }
+      return;
     }
 
     setLoading(true);
@@ -132,7 +151,7 @@ const ChangeEmailModal = ({ isOpen, onClose }) => {
             </>
           )}
 
-          {step === 2 && (
+          {(!canBypassOtp && step === 2) && (
             <>
               <p style={{ color: '#64748b', fontSize: '0.95rem', marginBottom: '1.5rem', lineHeight: '1.5' }}>
                 We've sent a 6-character verification code to your current registered email. <br/>
@@ -157,7 +176,7 @@ const ChangeEmailModal = ({ isOpen, onClose }) => {
           <div className="modal-actions">
             <button type="button" className="btn-cancel" onClick={handleClose}>Cancel</button>
             <button type="submit" className="btn-confirm" disabled={loading}>
-              {loading ? (step === 1 ? 'Sending...' : 'Verifying...') : (step === 1 ? '✉️ Send OTP' : '✅ Verify & Change')}
+              {loading ? (step === 1 && !canBypassOtp ? 'Sending...' : 'Updating...') : (step === 1 && !canBypassOtp ? '✉️ Send OTP' : '✅ Update Email')}
             </button>
           </div>
         </form>

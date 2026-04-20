@@ -476,6 +476,98 @@ router.post('/verify-email-change', authenticate, [
   );
 });
 
+// Direct Password Change (Admin & Owner bypass OTP)
+router.post('/direct-password-change', authenticate, [
+  body('currentPassword').notEmpty().withMessage('Current password is required'),
+  body('newPassword')
+    .isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
+    .matches(/[a-z]/).withMessage('Password must contain at least one lowercase letter')
+    .matches(/[A-Z]/).withMessage('Password must contain at least one uppercase letter')
+    .matches(/[!@#$%^&*(),.?":{}|<>]/).withMessage('Password must contain at least one symbol')
+], async (req, res) => {
+  if (req.user.role !== 'admin' && req.user.role !== 'owner') {
+    return res.status(403).json({ error: 'Unauthorized to bypass OTP' });
+  }
+
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
+  const { currentPassword, newPassword } = req.body;
+  const dbInstance = db.getDb();
+
+  dbInstance.get('SELECT * FROM users WHERE id = ?', [req.user.id], async (err, user) => {
+    if (err) return res.status(500).json({ error: 'Database error' });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const isValid = await bcrypt.compare(currentPassword, user.password);
+    if (!isValid) return res.status(400).json({ error: 'Incorrect current password' });
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    dbInstance.run('UPDATE users SET password = ? WHERE id = ?', [hashedPassword, req.user.id], (err) => {
+      if (err) return res.status(500).json({ error: 'Failed to update password' });
+      res.json({ message: 'Password updated successfully!' });
+    });
+  });
+});
+
+// Direct Email Change (Admin & Owner bypass OTP)
+router.post('/direct-email-change', authenticate, [
+  body('currentPassword').notEmpty().withMessage('Current password is required'),
+  body('newEmail').isEmail().withMessage('Please provide a valid new email address')
+], async (req, res) => {
+  if (req.user.role !== 'admin' && req.user.role !== 'owner') {
+    return res.status(403).json({ error: 'Unauthorized to bypass OTP' });
+  }
+
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
+  const { currentPassword, newEmail } = req.body;
+  const dbInstance = db.getDb();
+
+  dbInstance.get('SELECT * FROM users WHERE id = ?', [req.user.id], async (err, user) => {
+    if (err) return res.status(500).json({ error: 'Database error' });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const isValid = await bcrypt.compare(currentPassword, user.password);
+    if (!isValid) return res.status(400).json({ error: 'Incorrect current password' });
+    
+    dbInstance.get('SELECT id FROM users WHERE email = ?', [newEmail], (err, existingUser) => {
+      if (err) return res.status(500).json({ error: 'Database error' });
+      if (existingUser && existingUser.id !== req.user.id) {
+        return res.status(400).json({ error: 'Email is already taken by another account' });
+      }
+
+      dbInstance.run('UPDATE users SET email = ? WHERE id = ?', [newEmail, req.user.id], (err) => {
+        if (err) return res.status(500).json({ error: 'Failed to update email' });
+        
+        dbInstance.get('SELECT * FROM users WHERE id = ?', [req.user.id], (err, updatedUser) => {
+           if(err || !updatedUser) return res.status(500).json({error: 'Failed to load user info'});
+
+           const token = jwt.sign(
+            { id: updatedUser.id, username: updatedUser.username, email: updatedUser.email, role: updatedUser.role, is_verified: updatedUser.is_verified },
+            JWT_SECRET,
+            { expiresIn: '7d' }
+          );
+
+          res.json({ 
+            message: 'Email updated successfully!',
+            token,
+            user: {
+              id: updatedUser.id,
+              username: updatedUser.username,
+              email: updatedUser.email,
+              role: updatedUser.role,
+              is_verified: updatedUser.is_verified
+            }
+          });
+        });
+      });
+    });
+  });
+});
+
+
 // Delete own account
 router.delete('/delete-account', authenticate, (req, res) => {
   const dbInstance = db.getDb();

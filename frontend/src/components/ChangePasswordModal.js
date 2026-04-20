@@ -11,7 +11,8 @@ const IconEyeOff = () => (
 );
 
 const ChangePasswordModal = ({ isOpen, onClose }) => {
-  const { requestPasswordChange, verifyPasswordChange } = useAuth();
+  const { requestPasswordChange, verifyPasswordChange, directPasswordChange, isAdmin, isOwner } = useAuth();
+  const canBypassOtp = isAdmin || isOwner;
   
   const [step, setStep] = useState(1); // 1 = Request, 2 = Verify OTP + New PW
   const [formData, setFormData] = useState({
@@ -37,6 +38,35 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
   const handleRequestSubmit = async (e) => {
     e.preventDefault();
     setStatus({ type: '', message: '' });
+
+    if (canBypassOtp) {
+      if (formData.newPassword !== formData.confirmPassword) {
+        return setStatus({ type: 'error', message: 'New passwords do not match' });
+      }
+
+      // Password strength validation
+      const password = formData.newPassword;
+      if (password.length < 6) return setStatus({ type: 'error', message: 'Password must be at least 6 characters' });
+      if (!/[a-z]/.test(password)) return setStatus({ type: 'error', message: 'Password must contain at least one lowercase letter' });
+      if (!/[A-Z]/.test(password)) return setStatus({ type: 'error', message: 'Password must contain at least one uppercase letter' });
+      if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) return setStatus({ type: 'error', message: 'Password must contain at least one symbol' });
+
+      setLoading(true);
+      try {
+        const res = await directPasswordChange(formData.currentPassword, formData.newPassword);
+        if (res.success) {
+          setStatus({ type: 'success', message: 'Password updated successfully!' });
+          setTimeout(() => handleClose(), 2000);
+        } else {
+          setStatus({ type: 'error', message: res.error || 'Failed to update password.' });
+        }
+      } catch (err) {
+        setStatus({ type: 'error', message: 'Network error. Please try again.' });
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
 
     setLoading(true);
     try {
@@ -142,7 +172,43 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
             </div>
           )}
 
-          {step === 2 && (
+          {canBypassOtp && step === 1 && (
+            <>
+              <div className="form-group">
+                <label>New Password</label>
+                <div className="password-input-wrapper">
+                  <input
+                    type={showPasswords.new ? "text" : "password"}
+                    required
+                    value={formData.newPassword}
+                    onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
+                    placeholder="Min 6 characters"
+                  />
+                  <button type="button" className="eye-toggle" onClick={() => toggleVisibility('new')}>
+                    {showPasswords.new ? <IconEyeOff /> : <IconEye />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Confirm New Password</label>
+                <div className="password-input-wrapper">
+                  <input
+                    type={showPasswords.confirm ? "text" : "password"}
+                    required
+                    value={formData.confirmPassword}
+                    onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                    placeholder="••••••••"
+                  />
+                  <button type="button" className="eye-toggle" onClick={() => toggleVisibility('confirm')}>
+                    {showPasswords.confirm ? <IconEyeOff /> : <IconEye />}
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+
+          {!canBypassOtp && step === 2 && (
             <>
               <p style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '1.25rem', lineHeight: '1.4' }}>
                 Enter the 6-character code sent to your email and your new password.
@@ -198,7 +264,7 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
           <div className="modal-actions">
             <button type="button" className="btn-cancel" onClick={handleClose}>Cancel</button>
             <button type="submit" className="btn-confirm" disabled={loading}>
-              {loading ? (step === 1 ? 'Sending...' : 'Updating...') : (step === 1 ? '✉️ Send OTP' : '🔒 Change Password')}
+              {loading ? (step === 1 && !canBypassOtp ? 'Sending...' : 'Updating...') : (step === 1 && !canBypassOtp ? '✉️ Send OTP' : '🔒 Change Password')}
             </button>
           </div>
         </form>

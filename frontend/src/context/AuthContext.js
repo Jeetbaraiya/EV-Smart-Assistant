@@ -188,6 +188,54 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const directPasswordChange = async (currentPassword, newPassword) => {
+    try {
+      const response = await fetch(`${API_URL}/auth/direct-password-change`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getToken()}`
+        },
+        body: JSON.stringify({ currentPassword, newPassword })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        return { success: true, message: data.message };
+      } else {
+        return { success: false, error: data.error || data.errors?.[0]?.msg || 'Failed to update password' };
+      }
+    } catch (error) {
+      return { success: false, error: 'Network error. Please try again.' };
+    }
+  };
+
+  const directEmailChange = async (newEmail, currentPassword) => {
+    try {
+      const response = await fetch(`${API_URL}/auth/direct-email-change`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getToken()}`
+        },
+        body: JSON.stringify({ newEmail, currentPassword })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        localStorage.setItem('token', data.token);
+        setUser(data.user);
+        return { success: true, message: data.message };
+      } else {
+        return { success: false, error: data.error || data.errors?.[0]?.msg || 'Failed to update email' };
+      }
+    } catch (error) {
+      return { success: false, error: 'Network error. Please try again.' };
+    }
+  };
+
   const logout = () => {
     localStorage.removeItem('token');
     setUser(null);
@@ -208,6 +256,8 @@ export const AuthProvider = ({ children }) => {
     verifyEmailChange,
     requestPasswordChange,
     verifyPasswordChange,
+    directPasswordChange,
+    directEmailChange,
     isAuthenticated: !!user,
     isOwner: user?.role === 'owner',
     isAdmin: user?.role === 'admin'
