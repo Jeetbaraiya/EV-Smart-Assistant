@@ -8,13 +8,23 @@ const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: 'smtp.gmail.com',
+  port: 465,
+  secure: true,
   auth: {
     user: process.env.MAIL_USER,
     pass: process.env.MAIL_PASS,
   },
 });
 
+// Verify connection configuration
+transporter.verify((error, success) => {
+  if (error) {
+    console.error('[mail] SMTP Connection Error:', error.message);
+  } else {
+    console.log('[mail] SMTP Server is ready to send emails');
+  }
+});
 const router = express.Router();
 
 // Register
@@ -276,6 +286,7 @@ router.post('/request-password-change', authenticate, [
           if (err) return res.status(500).json({ error: 'Failed to create OTP request' });
 
           // Send email to current email
+          // Send email to current email
           const mailOptions = {
             from: process.env.MAIL_USER,
             to: user.email,
@@ -386,6 +397,7 @@ router.post('/request-email-change', authenticate, [
           (err) => {
             if (err) return res.status(500).json({ error: 'Failed to create OTP request' });
 
+            // Send email to the *current* registered email
             // Send email to the *current* registered email
             const mailOptions = {
               from: process.env.MAIL_USER,

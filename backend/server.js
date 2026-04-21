@@ -1,7 +1,7 @@
+require('dotenv').config();
 const express = require('express');
 console.log("STARTING SERVER.JS - MODULE REQUIRED");
 const cors = require('cors');
-const dotenv = require('dotenv');
 const http = require('http');
 const { WebSocketServer } = require('ws');
 console.log("REQUIRING DB...");
@@ -14,8 +14,6 @@ const indiaStationsRoutes = require('./routes/indiaStations');
 const vehicleRoutes = require('./routes/vehicles');
 const bookingRoutes = require('./routes/bookings');
 const connectorRoutes = require('./routes/connectors');
-
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
