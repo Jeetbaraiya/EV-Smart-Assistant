@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import './Dashboard.css';
 import {
@@ -34,11 +34,7 @@ const IconStation = () => (
   </svg>
 );
 
-const IconBattery = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="1" y="6" width="18" height="12" rx="2"/><line x1="23" y1="13" x2="23" y2="11"/><line x1="6" y1="10" x2="6" y2="14"/><line x1="10" y1="10" x2="10" y2="14"/>
-  </svg>
-);
+
 
 const IconClock = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -49,36 +45,12 @@ const IconClock = () => (
 const AdminDashboard = () => {
   const { getToken } = useAuth();
   const [stats, setStats] = useState(null);
-  const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  // Auto-refresh stats every 60 seconds
-  useEffect(() => {
-    const interval = setInterval(() => {
-      fetchData(true);
-    }, 60000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const fetchData = async (isRefresh = false) => {
-    if (!isRefresh) setLoading(true);
-    try {
-      await Promise.all([fetchStats(isRefresh), fetchReviews()]);
-    } catch (err) {
-      console.error('Fetch error:', err);
-    } finally {
-      if (!isRefresh) setLoading(false);
-    }
-  };
-
-  const fetchStats = async (isRefresh = false) => {
+  const fetchStats = useCallback(async (isRefresh = false) => {
     try {
       const token = getToken();
       const response = await fetch(`${API_URL}/admin/stats`, {
@@ -93,22 +65,31 @@ const AdminDashboard = () => {
     } catch (err) {
       if (!isRefresh) setError('Network error. Please check if the server is running.');
     }
-  };
+  }, [getToken, API_URL]);
 
-  const fetchReviews = async () => {
+  const fetchData = useCallback(async (isRefresh = false) => {
+    if (!isRefresh) setLoading(true);
     try {
-      const token = getToken();
-      const response = await fetch(`${API_URL}/admin/reviews`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const data = await response.json();
-      if (response.ok) {
-        setReviews(data.reviews || []);
-      }
+      await fetchStats(isRefresh);
     } catch (err) {
-      console.error('Failed to fetch reviews:', err);
+      console.error('Fetch error:', err);
+    } finally {
+      if (!isRefresh) setLoading(false);
     }
-  };
+  }, [fetchStats]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  // Auto-refresh stats every 60 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchData(true);
+    }, 60000);
+    return () => clearInterval(interval);
+  }, [fetchData]);
+
 
   return (
     <div className="dashboard-page">
@@ -339,38 +320,7 @@ const AdminDashboard = () => {
                   </div>
                 </div>
 
-                {/* ── Reviews Feed ─────────────────────────── */}
-                <div style={{ background: 'white', padding: '2rem', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0', marginBottom: '2rem' }}>
-                  <h4 style={{ margin: '0 0 1.5rem', fontWeight: 800, color: '#1e293b', fontSize: '1.25rem' }}>⭐ Station Reviews Feed</h4>
-                  {reviews.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>No reviews submitted yet.</div>
-                  ) : (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.25rem' }}>
-                      {reviews.map(rev => (
-                        <div key={rev.id} style={{ background: '#f8fafc', padding: '1.25rem', borderRadius: '14px', border: '1px solid #f1f5f9' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-                            <div>
-                              <strong style={{ color: '#1e293b' }}>{rev.username?.toUpperCase()}</strong>
-                              <div style={{ fontSize: '0.8rem', color: '#64748b' }}>on {rev.station_name}</div>
-                            </div>
-                            <span style={{ color: '#eab308' }}>{'★'.repeat(rev.rating)}{'☆'.repeat(5-rev.rating)}</span>
-                          </div>
-                          <p style={{ 
-                            fontSize: '0.9rem', 
-                            color: rev.comment ? '#475569' : '#94a3b8', 
-                            lineHeight: 1.5,
-                            fontStyle: rev.comment ? 'normal' : 'italic'
-                          }}>
-                            {rev.comment || 'Star rating only (no written feedback)'}
-                          </p>
-                          <div style={{ textAlign: 'right', fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.5rem' }}>
-                            {new Date(rev.created_at).toLocaleDateString()}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+
               </>
             ) : (
               <div className="no-data">No statistics available.</div>

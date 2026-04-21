@@ -195,7 +195,7 @@ const OwnerStations = () => {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <button className="btn-primary" onClick={() => { resetForm(); setShowForm(true); }}>
-              ➕ Add New Station
+              <b>+</b> Add New Station
             </button>
             <button className="btn-header-refresh" onClick={fetchMyStations}>🔄 Sync</button>
           </div>

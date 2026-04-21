@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import './Dashboard.css';
 
@@ -28,9 +28,7 @@ const AdminStations = () => {
 
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
-  useEffect(() => { fetchStations(); }, []);
-
-  const fetchStations = async () => {
+  const fetchStations = useCallback(async () => {
     setLoading(true);
     try {
       const token = getToken();
@@ -45,7 +43,11 @@ const AdminStations = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [getToken, API_URL]);
+
+  useEffect(() => { 
+    fetchStations(); 
+  }, [fetchStations]);
 
   const handleVerify = async (id, verify) => {
     setError(''); setSuccess('');

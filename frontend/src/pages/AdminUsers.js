@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import './Dashboard.css';
 
@@ -26,9 +26,7 @@ const AdminUsers = () => {
 
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
-  useEffect(() => { fetchUsers(); }, []);
-
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     setLoading(true);
     try {
       const token = getToken();
@@ -43,7 +41,11 @@ const AdminUsers = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [getToken, API_URL]);
+
+  useEffect(() => { 
+    fetchUsers(); 
+  }, [fetchUsers]);
 
   const handleRemoveUser = async (id) => {
     if (!window.confirm('Are you sure you want to permanently remove this user? This action cannot be undone.')) return;

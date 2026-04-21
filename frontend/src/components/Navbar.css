@@ -13,6 +13,14 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+/* On mobile, hide the standard navbar for authenticated users — top tab bar is used instead */
+@media (max-width: 768px) {
+  .navbar--hide-on-mobile {
+    display: none !important;
+  }
+}
+
+
 .navbar-container {
   max-width: 100%;
   padding: 0 2rem; /* Balanced corner breathing room */
@@ -678,15 +686,150 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   MOBILE — top navbar for small screens even when authed
+   MOBILE TOP NAV BAR — admin/owner only, hidden on desktop
+═══════════════════════════════════════════════════════════════ */
+.mobile-top-nav {
+  display: none; /* hidden on desktop */
+}
+
+/* Floating logout FAB — hidden on desktop */
+.mobile-fab-logout {
+  display: none;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   MOBILE — bottom navbar for small screens (admin, owner, user)
 ═══════════════════════════════════════════════════════════════ */
 @media (max-width: 768px) {
+  /* ── Show mobile bottom nav, hide sidebar toggle button ── */
+  .mobile-top-nav {
+    display: block;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1100;
+    background: linear-gradient(135deg, #6C63FF 0%, #5a52d5 60%, #764ba2 100%);
+    box-shadow: 0 -4px 20px rgba(108, 99, 255, 0.45);
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+  }
+
+  .mobile-top-nav-inner {
+    display: flex;
+    align-items: stretch;
+    justify-content: space-around;
+    height: 58px;
+    padding: 0 0.25rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .mobile-top-nav-inner::-webkit-scrollbar {
+    display: none;
+  }
+
+  .mobile-top-link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    flex: 1;
+    min-width: 56px;
+    padding: 0.4rem 0.25rem;
+    color: rgba(255, 255, 255, 0.75);
+    text-decoration: none;
+    font-size: 0.62rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    border-top: 3px solid transparent;
+    transition: color 0.2s, border-color 0.2s, background 0.2s;
+    font-family: 'Outfit', sans-serif;
+  }
+
+  .mobile-top-link:hover,
+  .mobile-top-link.active {
+    color: white;
+    background: rgba(255, 255, 255, 0.1);
+    border-top-color: white;
+  }
+
+  .mobile-top-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+  }
+
+  .mobile-top-icon svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+  }
+
+  .mobile-top-logout {
+    color: rgba(255, 255, 255, 0.8);
+  }
+
+  .mobile-top-logout:hover {
+    color: white;
+    background: rgba(255, 255, 255, 0.1);
+    border-top-color: white;
+  }
+
+  /* ── Floating Logout FAB — fixed top-right corner on mobile ── */
+  .mobile-fab-logout {
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    z-index: 1200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    background: rgba(108, 99, 255, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    color: white;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(108, 99, 255, 0.5);
+    backdrop-filter: blur(10px);
+    transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .mobile-fab-logout svg {
+    width: 20px;
+    height: 20px;
+    stroke: white;
+  }
+
+  .mobile-fab-logout:hover,
+  .mobile-fab-logout:active {
+    background: #5a52d5;
+    transform: scale(1.1) rotate(5deg);
+    box-shadow: 0 8px 25px rgba(108, 99, 255, 0.6);
+  }
+
+  /* Hide hamburger toggle on mobile (bottom nav replaces it) */
+  .sidebar-mobile-toggle {
+    display: none !important;
+  }
+
   /* Sidebar becomes drawer from left */
   .sidebar {
     width: 260px;
     transform: translateX(-100%);
     transition: transform 0.3s ease, width 0.3s ease;
   }
+
 
   .sidebar.collapsed {
     width: 260px;
@@ -697,7 +840,9 @@
     transform: translateX(0);
   }
 
-  .sidebar-mobile-toggle {
+  /* sidebar-mobile-toggle is hidden on mobile — top nav is used instead */
+  /* .sidebar-mobile-toggle removed — kept below for reference only */
+  .sidebar-mobile-toggle-DISABLED {
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -751,7 +896,8 @@
   .App.with-sidebar .main-content {
     margin-left: 0;
     width: 100%;
-    padding-top: 60px; /* Space for the floating button */
+    padding-top: 0;
+    padding-bottom: 58px; /* Space for mobile bottom nav bar */
   }
 
   /* Top navbar mobile */
@@ -771,7 +917,7 @@
     justify-content: flex-start;
     align-items: stretch;
     gap: 0;
-    padding: 5rem 2rem 2rem;
+    padding: 4.5rem 2rem 2rem;
     transition: right 0.3s ease;
     border-left: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: -10px 0 30px rgba(0, 0, 0, 0.3);
@@ -780,6 +926,18 @@
 
   .navbar-menu.mobile-open {
     right: 0;
+  }
+
+  /* Move auth buttons to top, nav links below */
+  .nav-right {
+    order: -1;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  }
+
+  .nav-center {
+    order: 0;
   }
 
   .nav-links {

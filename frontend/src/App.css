@@ -14,6 +14,14 @@
   overflow-x: hidden;
 }
 
+/* Push content above the fixed mobile bottom nav bar (authenticated regular users) */
+@media (max-width: 768px) {
+  .App:not(.with-sidebar) .main-content {
+    padding-bottom: 58px;
+  }
+}
+
+
 
 .loading {
   text-align: center;

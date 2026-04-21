@@ -11,15 +11,6 @@ const IconHome = () => (
   </svg>
 );
 
-const IconBattery = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect width="16" height="10" x="2" y="7" rx="2" ry="2" />
-    <line x1="22" x2="22" y1="11" y2="13" />
-    <line x1="6" x2="6" y1="11" y2="13" />
-    <line x1="10" x2="10" y1="11" y2="13" />
-    <line x1="14" x2="14" y1="11" y2="13" />
-  </svg>
-);
 
 const IconMap = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -100,15 +91,6 @@ const IconEVUser = () => (
   </svg>
 );
 
-const IconPlug = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M12 17v5" />
-    <path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7" />
-    <path d="M9 3v4" />
-    <path d="M15 3v4" />
-    <line x1="8" y1="3" x2="16" y2="3" />
-  </svg>
-);
 
 const IconDashboard = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -161,10 +143,63 @@ const Navbar = () => {
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  // ── Admin or Owner: Left Sidebar ─────────────────────────────────────────────
+  // ── Admin or Owner: Left Sidebar + Mobile Top Nav ────────────────────────────
   if (isAuthenticated && (isAdmin || isOwner)) {
     return (
       <>
+        {/* ── Mobile Top Navigation Bar (mobile only) ── */}
+        <nav className="mobile-top-nav">
+          <div className="mobile-top-nav-inner">
+            {isAdmin && (
+              <>
+                <NavLink to="/admin/dashboard" className="mobile-top-link" onClick={() => setIsSidebarOpen(false)}>
+                  <span className="mobile-top-icon"><IconDashboard /></span>
+                  <span>Dashboard</span>
+                </NavLink>
+                <NavLink to="/admin/users" className="mobile-top-link" onClick={() => setIsSidebarOpen(false)}>
+                  <span className="mobile-top-icon"><IconUsers /></span>
+                  <span>Users</span>
+                </NavLink>
+                <NavLink to="/admin/owners" className="mobile-top-link" onClick={() => setIsSidebarOpen(false)}>
+                  <span className="mobile-top-icon"><IconOwner /></span>
+                  <span>Owners</span>
+                </NavLink>
+                <NavLink to="/admin/stations" className="mobile-top-link" onClick={() => setIsSidebarOpen(false)}>
+                  <span className="mobile-top-icon"><IconStation /></span>
+                  <span>Stations</span>
+                </NavLink>
+              </>
+            )}
+            {isOwner && (
+              <>
+                <NavLink to="/owner/dashboard" className="mobile-top-link" onClick={() => setIsSidebarOpen(false)}>
+                  <span className="mobile-top-icon"><IconDashboard /></span>
+                  <span>Dashboard</span>
+                </NavLink>
+                <NavLink to="/owner/my-stations" className="mobile-top-link" onClick={() => setIsSidebarOpen(false)}>
+                  <span className="mobile-top-icon"><IconStation /></span>
+                  <span>Stations</span>
+                </NavLink>
+                <NavLink to="/owner/bookings" className="mobile-top-link" onClick={() => setIsSidebarOpen(false)}>
+                  <span className="mobile-top-icon"><IconCalendar /></span>
+                  <span>Bookings</span>
+                </NavLink>
+              </>
+            )}
+            <Link to="/profile" className="mobile-top-link" title="Profile">
+              <span className="mobile-top-icon">
+                {isAdmin ? <IconAdmin /> : <IconOwner />}
+              </span>
+              <span>Profile</span>
+            </Link>
+            <button className="mobile-top-link mobile-top-logout" onClick={handleLogout}>
+              <span className="mobile-top-icon"><IconLogout /></span>
+              <span>Logout</span>
+            </button>
+          </div>
+        </nav>
+
+        {/* ── Desktop Sidebar Toggle Button ── */}
         <button 
           className={`sidebar-mobile-toggle ${isSidebarOpen ? 'active' : ''}`}
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -179,7 +214,7 @@ const Navbar = () => {
 
         <aside className={`sidebar ${isSidebarOpen ? 'mobile-open' : ''}`}>
           <div className="sidebar-brand">
-          <Link to="/" className="sidebar-logo">
+          <div className="sidebar-logo">
             <div className="brand-icon">
               <span className="lightning"><IconLightning /></span>
             </div>
@@ -187,7 +222,7 @@ const Navbar = () => {
               <span className="brand-primary">EV Smart</span>
               <span className="brand-secondary">Assistant</span>
             </div>
-          </Link>
+          </div>
         </div>
 
         <nav className="sidebar-nav">
@@ -251,117 +286,159 @@ const Navbar = () => {
 
   // ── Regular Auth or Guest: Top Navbar ────────────────────────────────────────
   return (
-    <nav className="navbar">
-      <div className="navbar-container">
-        <div className="nav-left">
-          <Link to="/" className="navbar-brand" onClick={closeMobileMenu}>
-            <div className="brand-icon">
-              <span className="lightning"><IconLightning /></span>
+    <>
+      {/* ── Mobile Top Nav (authenticated users only, hidden on desktop) ── */}
+      {isAuthenticated && (
+        <>
+          <nav className="mobile-top-nav mobile-top-nav--user">
+            <div className="mobile-top-nav-inner">
+              <NavLink to="/" end className="mobile-top-link" onClick={closeMobileMenu}>
+                <span className="mobile-top-icon"><IconHome /></span>
+                <span>Home</span>
+              </NavLink>
+              <NavLink to="/calculator/route-check" className="mobile-top-link" onClick={closeMobileMenu}>
+                <span className="mobile-top-icon"><IconMap /></span>
+                <span>Route</span>
+              </NavLink>
+              <NavLink to="/stations" className="mobile-top-link" onClick={closeMobileMenu}>
+                <span className="mobile-top-icon"><IconStation /></span>
+                <span>Stations</span>
+              </NavLink>
+              <NavLink to="/vehicles" className="mobile-top-link" onClick={closeMobileMenu}>
+                <span className="mobile-top-icon"><IconCar /></span>
+                <span>Vehicles</span>
+              </NavLink>
+              <NavLink to="/my-bookings" className="mobile-top-link" onClick={closeMobileMenu}>
+                <span className="mobile-top-icon"><IconCalendar /></span>
+                <span>Bookings</span>
+              </NavLink>
+              <Link to="/profile" className="mobile-top-link" onClick={closeMobileMenu}>
+                <span className="mobile-top-icon"><IconEVUser /></span>
+                <span>{user?.username?.slice(0,6) || 'Profile'}</span>
+              </Link>
             </div>
-            <div className="brand-text">
-              <span className="brand-primary">EV Smart</span>
-              <span className="brand-secondary">Assistant</span>
-            </div>
-          </Link>
-        </div>
+          </nav>
 
-        <button
-          className={`mobile-menu-toggle ${isMobileMenuOpen ? 'active' : ''}`}
-          onClick={toggleMobileMenu}
-          aria-label="Toggle mobile menu"
-        >
-          <span></span>
-          <span></span>
-          <span></span>
-        </button>
+          {/* ── Floating Logout Button — top-right, mobile only ── */}
+          <button className="mobile-fab-logout" onClick={() => { closeMobileMenu(); handleLogout(); }} aria-label="Logout">
+            <IconLogout />
+          </button>
+        </>
+      )}
 
-        <div className={`navbar-menu ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
-          <div className="nav-center">
-            <div className="nav-links">
-              {isAuthenticated && (
-                <>
-                  <NavLink to="/" end className="nav-link" onClick={closeMobileMenu}>
-                    <span className="nav-icon"><IconHome /></span>
-                    Home
-                  </NavLink>
-                  <div
-                    className="nav-dropdown"
-                    onMouseEnter={() => !isMobileMenuOpen && setIsRouteDropdownOpen(true)}
-                    onMouseLeave={() => !isMobileMenuOpen && setIsRouteDropdownOpen(false)}
-                  >
+      <nav className={`navbar${isAuthenticated ? ' navbar--hide-on-mobile' : ''}`}>
+        <div className="navbar-container">
+          <div className="nav-left">
+            <Link to="/" className="navbar-brand" onClick={closeMobileMenu}>
+              <div className="brand-icon">
+                <span className="lightning"><IconLightning /></span>
+              </div>
+              <div className="brand-text">
+                <span className="brand-primary">EV Smart</span>
+                <span className="brand-secondary">Assistant</span>
+              </div>
+            </Link>
+          </div>
+
+          <button
+            className={`mobile-menu-toggle ${isMobileMenuOpen ? 'active' : ''}`}
+            onClick={toggleMobileMenu}
+            aria-label="Toggle mobile menu"
+          >
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+
+          <div className={`navbar-menu ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
+            <div className="nav-center">
+              <div className="nav-links">
+                {isAuthenticated && (
+                  <>
+                    <NavLink to="/" end className="nav-link" onClick={closeMobileMenu}>
+                      <span className="nav-icon"><IconHome /></span>
+                      Home
+                    </NavLink>
                     <div
-                      className={`nav-link dropdown-toggle ${isRouteDropdownOpen ? 'active' : ''}`}
-                      onClick={() => isMobileMenuOpen && setIsRouteDropdownOpen(!isRouteDropdownOpen)}
+                      className="nav-dropdown"
+                      onMouseEnter={() => !isMobileMenuOpen && setIsRouteDropdownOpen(true)}
+                      onMouseLeave={() => !isMobileMenuOpen && setIsRouteDropdownOpen(false)}
                     >
-                      <span className="nav-icon"><IconMap /></span>
-                      Route
-                      <span className={`dropdown-arrow ${isRouteDropdownOpen ? 'open' : ''}`}>▼</span>
+                      <div
+                        className={`nav-link dropdown-toggle ${isRouteDropdownOpen ? 'active' : ''}`}
+                        onClick={() => isMobileMenuOpen && setIsRouteDropdownOpen(!isRouteDropdownOpen)}
+                      >
+                        <span className="nav-icon"><IconMap /></span>
+                        Route
+                        <span className={`dropdown-arrow ${isRouteDropdownOpen ? 'open' : ''}`}>▼</span>
+                      </div>
+                      <div className={`dropdown-menu ${isRouteDropdownOpen ? 'show' : ''}`}>
+                        <NavLink to="/calculator/route-check" className="dropdown-item" onClick={closeMobileMenu}>
+                          Route Feasibility
+                        </NavLink>
+                        <NavLink to="/calculator/multi-stop" className="dropdown-item" onClick={closeMobileMenu}>
+                          Multi-Stop Planner
+                        </NavLink>
+                      </div>
                     </div>
-                    <div className={`dropdown-menu ${isRouteDropdownOpen ? 'show' : ''}`}>
-                      <NavLink to="/calculator/route-check" className="dropdown-item" onClick={closeMobileMenu}>
-                        Route Feasibility
-                      </NavLink>
-                      <NavLink to="/calculator/multi-stop" className="dropdown-item" onClick={closeMobileMenu}>
-                        Multi-Stop Planner
-                      </NavLink>
-                    </div>
-                  </div>
-                  <NavLink to="/stations" className="nav-link" onClick={closeMobileMenu}>
-                    <span className="nav-icon"><IconStation /></span>
-                    Stations
-                  </NavLink>
-                  <NavLink to="/vehicles" className="nav-link" onClick={closeMobileMenu}>
-                    <span className="nav-icon"><IconCar /></span>
-                    Vehicles
-                  </NavLink>
-                  <NavLink to="/my-bookings" className="nav-link" onClick={closeMobileMenu}>
-                    <span className="nav-icon"><IconCalendar /></span>
-                    My Bookings
-                  </NavLink>
-                </>
-              )}
+                    <NavLink to="/stations" className="nav-link" onClick={closeMobileMenu}>
+                      <span className="nav-icon"><IconStation /></span>
+                      Stations
+                    </NavLink>
+                    <NavLink to="/vehicles" className="nav-link" onClick={closeMobileMenu}>
+                      <span className="nav-icon"><IconCar /></span>
+                      Vehicles
+                    </NavLink>
+                    <NavLink to="/my-bookings" className="nav-link" onClick={closeMobileMenu}>
+                      <span className="nav-icon"><IconCalendar /></span>
+                      My Bookings
+                    </NavLink>
+                  </>
+                )}
+              </div>
             </div>
-          </div>
 
-          <div className="nav-right">
-            <div className="nav-auth">
-              {isAuthenticated ? (
-                <div className="nav-authenticated">
-                  <Link to="/profile" className="nav-user-info" title="View Profile" onClick={closeMobileMenu}>
-                    <span className="btn-icon" style={{ marginRight: '0.75rem', color: 'white' }}>
-                      {isAdmin && <IconAdmin />}
-                      {isOwner && <IconOwner />}
-                      {!isAdmin && !isOwner && <IconEVUser />}
-                    </span>
-                    <span className="username">{user?.username?.toUpperCase()}</span>
-                  </Link>
-                  <button onClick={() => { closeMobileMenu(); handleLogout(); }} className="premium-logout-btn" title="Logout">
-                    <span className="btn-icon"><IconLogout /></span>
-                    <span>LOGOUT</span>
-                  </button>
-                </div>
-              ) : (
-                <div className="nav-guest">
-                  <NavLink to="/" end className="nav-link home-guest-link" onClick={closeMobileMenu}>
-                    <span className="nav-icon"><IconHome /></span>
-                    HOME
-                  </NavLink>
-                  <NavLink to="/login" className="nav-link login-link" onClick={closeMobileMenu}>
-                    <span className="nav-icon"><IconLogin /></span>
-                    LOGIN
-                  </NavLink>
-                  <NavLink to="/register" className="nav-link nav-register-btn" onClick={closeMobileMenu}>
-                    <span className="nav-icon"><IconRegister /></span>
-                    REGISTER
-                  </NavLink>
-                </div>
-              )}
+            <div className="nav-right">
+              <div className="nav-auth">
+                {isAuthenticated ? (
+                  <div className="nav-authenticated">
+                    <Link to="/profile" className="nav-user-info" title="View Profile" onClick={closeMobileMenu}>
+                      <span className="btn-icon" style={{ marginRight: '0.75rem', color: 'white' }}>
+                        {isAdmin && <IconAdmin />}
+                        {isOwner && <IconOwner />}
+                        {!isAdmin && !isOwner && <IconEVUser />}
+                      </span>
+                      <span className="username">{user?.username?.toUpperCase()}</span>
+                    </Link>
+                    <button onClick={() => { closeMobileMenu(); handleLogout(); }} className="premium-logout-btn" title="Logout">
+                      <span className="btn-icon"><IconLogout /></span>
+                      <span>LOGOUT</span>
+                    </button>
+                  </div>
+                ) : (
+                  <div className="nav-guest">
+                    <NavLink to="/" end className="nav-link home-guest-link" onClick={closeMobileMenu}>
+                      <span className="nav-icon"><IconHome /></span>
+                      HOME
+                    </NavLink>
+                    <NavLink to="/login" className="nav-link login-link" onClick={closeMobileMenu}>
+                      <span className="nav-icon"><IconLogin /></span>
+                      LOGIN
+                    </NavLink>
+                    <NavLink to="/register" className="nav-link nav-register-btn" onClick={closeMobileMenu}>
+                      <span className="nav-icon"><IconRegister /></span>
+                      REGISTER
+                    </NavLink>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </nav>
+      </nav>
+    </>
   );
 };
 
 export default Navbar;
+
