@@ -188,7 +188,21 @@ db.init()
 
     // Health check
     app.get('/api/health', (req, res) => {
-      res.json({ status: 'OK', message: 'EV Smart Assistant API is running' });
+      res.json({ status: 'OK', message: 'EV Smart Assistant API is running', version: '2' });
+    });
+
+    // Temporary debug: show which tables exist + create missing ones
+    app.get('/api/db-status', async (req, res) => {
+      try {
+        const dbInstance = db.getDb();
+        dbInstance.all('SHOW TABLES', (err, rows) => {
+          if (err) return res.status(500).json({ error: err.message });
+          const tables = rows.map(r => Object.values(r)[0]);
+          res.json({ tables, count: tables.length });
+        });
+      } catch (e) {
+        res.status(500).json({ error: e.message });
+      }
     });
 
     // Start simulation loop (every 10 seconds)
