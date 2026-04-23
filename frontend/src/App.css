@@ -12,6 +12,27 @@
   min-height: 100vh;
   max-width: 100%;
   overflow-x: hidden;
+  padding-top: 60px; /* offset for fixed navbar */
+}
+
+/* Sidebar users (admin/owner) don't need top padding on desktop — no fixed top navbar */
+.App.with-sidebar .main-content {
+  padding-top: 0;
+}
+
+/* On mobile the navbar is 56px tall */
+@media (max-width: 768px) {
+  .main-content {
+    padding-top: 56px;
+  }
+  /* Admin/owner on mobile use bottom tab bar, not top navbar */
+  .App.with-sidebar .main-content {
+    padding-top: 0;
+  }
+  /* Authenticated regular users hide the top navbar on mobile — no top space needed */
+  .App.authenticated:not(.with-sidebar) .main-content {
+    padding-top: 0;
+  }
 }
 
 /* Push content above the fixed mobile bottom nav bar (authenticated regular users) */

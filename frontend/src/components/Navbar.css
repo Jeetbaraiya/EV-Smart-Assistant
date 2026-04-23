@@ -5,9 +5,11 @@
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   backdrop-filter: blur(20px);
   color: white;
-  padding: 0.5rem 0; /* Slimmer header */
-  position: sticky;
+  padding: 0.5rem 0;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 1000;
   box-shadow: 0 4px 20px rgba(102, 126, 234, 0.2);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);

@@ -21,6 +21,7 @@ import MultiStopPlanner from './pages/MultiStopPlanner';
 import Profile from './pages/Profile';
 import MyBookings from './pages/MyBookings';
 import PrivateRoute from './components/PrivateRoute';
+import ScrollToTop from './components/ScrollToTop';
 import './App.css';
 
 function AppLayout() {
@@ -28,7 +29,8 @@ function AppLayout() {
   const showSidebar = isAuthenticated && (isAdmin || isOwner);
 
   return (
-    <div className={`App ${showSidebar ? 'with-sidebar' : ''}`}>
+    <div className={`App ${showSidebar ? 'with-sidebar' : ''} ${isAuthenticated ? 'authenticated' : ''}`}>
+      <ScrollToTop />
       <Navbar />
       <main className="main-content">
         <Routes>
