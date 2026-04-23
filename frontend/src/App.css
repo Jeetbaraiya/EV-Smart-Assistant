@@ -33,6 +33,11 @@
   .App.authenticated:not(.with-sidebar) .main-content {
     padding-top: 0;
   }
+  /* Guest users: pull .home's purple gradient up to cover the white padding-top gap */
+  .App:not(.authenticated) .home {
+    margin-top: -56px;
+    padding-top: 56px;
+  }
 }
 
 /* Push content above the fixed mobile bottom nav bar (authenticated regular users) */
