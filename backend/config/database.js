@@ -100,15 +100,24 @@ let db   = null;
  * @returns {Promise<void>}
  */
 const init = () => new Promise((resolve, reject) => {
-  const hostRaw = toStr(process.env.DB_HOST, '127.0.0.1');
-  const host    = hostRaw.toLowerCase() === 'localhost' ? '127.0.0.1' : hostRaw;
+  // Support both custom DB_* vars and Railway's native MYSQL* plugin vars
+  const hostRaw = toStr(
+    process.env.DB_HOST || process.env.MYSQLHOST || process.env.RAILWAY_TCP_PROXY_DOMAIN,
+    '127.0.0.1'
+  );
+  const host = hostRaw.toLowerCase() === 'localhost' ? '127.0.0.1' : hostRaw;
+
+  const port = Number(
+    (process.env.DB_PORT || process.env.MYSQLPORT || process.env.RAILWAY_TCP_PROXY_PORT || '3306')
+      .toString().trim()
+  );
 
   const poolOptions = {
     host,
-    port              : process.env.DB_PORT ? Number(String(process.env.DB_PORT).trim()) : 3306,
-    user              : toStr(process.env.DB_USER,     'root'),
-    password          : toStr(process.env.DB_PASSWORD, ''),
-    database          : toStr(process.env.DB_NAME,     'ev_assistant'),
+    port,
+    user              : toStr(process.env.DB_USER     || process.env.MYSQLUSER,     'root'),
+    password          : toStr(process.env.DB_PASSWORD || process.env.MYSQLPASSWORD, ''),
+    database          : toStr(process.env.DB_NAME     || process.env.MYSQLDATABASE, 'ev_assistant'),
     waitForConnections : true,
     connectionLimit   : Number(process.env.DB_CONNECTION_LIMIT || 10),
     queueLimit        : 0,
