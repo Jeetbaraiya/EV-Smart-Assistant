@@ -189,9 +189,10 @@ const getDb = () => {
 
 /* ── Schema creation ───────────────────────────────────────────────── */
 
-const createTables = () => new Promise((resolve, reject) => {
-  const schema = `
-    CREATE TABLE IF NOT EXISTS users (
+const TABLES = [
+  {
+    name: 'users',
+    sql: `CREATE TABLE IF NOT EXISTS users (
       id          INT AUTO_INCREMENT PRIMARY KEY,
       username    VARCHAR(255) UNIQUE NOT NULL,
       email       VARCHAR(255) UNIQUE NOT NULL,
@@ -199,9 +200,11 @@ const createTables = () => new Promise((resolve, reject) => {
       role        VARCHAR(50)  NOT NULL DEFAULT 'user',
       is_verified TINYINT(1)   DEFAULT 0,
       created_at  DATETIME     DEFAULT CURRENT_TIMESTAMP
-    );
-
-    CREATE TABLE IF NOT EXISTS charging_stations (
+    )`
+  },
+  {
+    name: 'charging_stations',
+    sql: `CREATE TABLE IF NOT EXISTS charging_stations (
       id                    INT AUTO_INCREMENT PRIMARY KEY,
       name                  VARCHAR(255) NOT NULL,
       address               VARCHAR(255) NOT NULL,
@@ -223,9 +226,11 @@ const createTables = () => new Promise((resolve, reject) => {
       created_at            DATETIME    DEFAULT CURRENT_TIMESTAMP,
       updated_at            DATETIME    DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
       FOREIGN KEY (owner_id) REFERENCES users(id)
-    );
-
-    CREATE TABLE IF NOT EXISTS connectors (
+    )`
+  },
+  {
+    name: 'connectors',
+    sql: `CREATE TABLE IF NOT EXISTS connectors (
       id            INT AUTO_INCREMENT PRIMARY KEY,
       station_id    INT          NOT NULL,
       type          VARCHAR(50)  NOT NULL,
@@ -234,27 +239,31 @@ const createTables = () => new Promise((resolve, reject) => {
       status        VARCHAR(50)  DEFAULT 'available',
       created_at    DATETIME     DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (station_id) REFERENCES charging_stations(id) ON DELETE CASCADE
-    );
-
-    CREATE TABLE IF NOT EXISTS bookings (
-      id                  INT AUTO_INCREMENT PRIMARY KEY,
-      station_id          INT         NOT NULL,
-      user_id             INT,
-      connector_id        INT,
+    )`
+  },
+  {
+    name: 'bookings',
+    sql: `CREATE TABLE IF NOT EXISTS bookings (
+      id                   INT AUTO_INCREMENT PRIMARY KEY,
+      station_id           INT         NOT NULL,
+      user_id              INT,
+      connector_id         INT,
       connector_type_label VARCHAR(100),
-      start_time          DATETIME    NOT NULL,
-      end_time            DATETIME,
-      energy_kwh          FLOAT,
-      total_price         FLOAT,
-      status              VARCHAR(50) DEFAULT 'confirmed',
-      user_deleted        TINYINT(1)  DEFAULT 0,
-      owner_deleted       TINYINT(1)  DEFAULT 0,
-      created_at          DATETIME    DEFAULT CURRENT_TIMESTAMP,
+      start_time           DATETIME    NOT NULL,
+      end_time             DATETIME,
+      energy_kwh           FLOAT,
+      total_price          FLOAT,
+      status               VARCHAR(50) DEFAULT 'confirmed',
+      user_deleted         TINYINT(1)  DEFAULT 0,
+      owner_deleted        TINYINT(1)  DEFAULT 0,
+      created_at           DATETIME    DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (station_id) REFERENCES charging_stations(id),
       FOREIGN KEY (user_id)    REFERENCES users(id)
-    );
-
-    CREATE TABLE IF NOT EXISTS station_reviews (
+    )`
+  },
+  {
+    name: 'station_reviews',
+    sql: `CREATE TABLE IF NOT EXISTS station_reviews (
       id         INT AUTO_INCREMENT PRIMARY KEY,
       station_id VARCHAR(255) NOT NULL,
       user_id    INT          NOT NULL,
@@ -264,9 +273,11 @@ const createTables = () => new Promise((resolve, reject) => {
       updated_at DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
       UNIQUE KEY uq_station_user (station_id, user_id),
       FOREIGN KEY (user_id) REFERENCES users(id)
-    );
-
-    CREATE TABLE IF NOT EXISTS vehicles (
+    )`
+  },
+  {
+    name: 'vehicles',
+    sql: `CREATE TABLE IF NOT EXISTS vehicles (
       id               INT AUTO_INCREMENT PRIMARY KEY,
       user_id          INT          NOT NULL,
       name             VARCHAR(255) NOT NULL,
@@ -275,26 +286,32 @@ const createTables = () => new Promise((resolve, reject) => {
       created_at       DATETIME     DEFAULT CURRENT_TIMESTAMP,
       updated_at       DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-    );
-
-    CREATE TABLE IF NOT EXISTS password_resets (
+    )`
+  },
+  {
+    name: 'password_resets',
+    sql: `CREATE TABLE IF NOT EXISTS password_resets (
       id         INT AUTO_INCREMENT PRIMARY KEY,
       email      VARCHAR(255) NOT NULL,
       token      VARCHAR(255) NOT NULL,
       expires_at DATETIME     NOT NULL,
       created_at DATETIME     DEFAULT CURRENT_TIMESTAMP
-    );
-
-    CREATE TABLE IF NOT EXISTS password_change_otps (
+    )`
+  },
+  {
+    name: 'password_change_otps',
+    sql: `CREATE TABLE IF NOT EXISTS password_change_otps (
       id         INT AUTO_INCREMENT PRIMARY KEY,
       user_id    INT          NOT NULL,
       otp        VARCHAR(255) NOT NULL,
       expires_at DATETIME     NOT NULL,
       created_at DATETIME     DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-    );
-
-    CREATE TABLE IF NOT EXISTS email_change_otps (
+    )`
+  },
+  {
+    name: 'email_change_otps',
+    sql: `CREATE TABLE IF NOT EXISTS email_change_otps (
       id         INT AUTO_INCREMENT PRIMARY KEY,
       user_id    INT          NOT NULL,
       new_email  VARCHAR(255) NOT NULL,
@@ -302,43 +319,55 @@ const createTables = () => new Promise((resolve, reject) => {
       expires_at DATETIME     NOT NULL,
       created_at DATETIME     DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-    );
-
-    CREATE TABLE IF NOT EXISTS usage_events (
+    )`
+  },
+  {
+    name: 'usage_events',
+    sql: `CREATE TABLE IF NOT EXISTS usage_events (
       id         INT AUTO_INCREMENT PRIMARY KEY,
       user_id    INT,
       event_type VARCHAR(255) NOT NULL,
       metadata   TEXT,
       created_at DATETIME     DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (user_id) REFERENCES users(id)
-    );
-  `;
+    )`
+  },
+];
 
-  pool.query(schema, (err) => {
-    if (err) {
-      console.error('[db] Schema creation error:', err.message);
-      return reject(err);
+const createTables = () => new Promise((resolve) => {
+  // Run each CREATE TABLE individually so one failure doesn't block the rest
+  const runNext = (index) => {
+    if (index >= TABLES.length) {
+      console.log('[db] Schema ready.');
+      if (!toBool(process.env.DB_SEED_ADMIN)) return resolve();
+      // Seed default admin only if none exists
+      db.get("SELECT id FROM users WHERE role = 'admin' LIMIT 1", (err, row) => {
+        if (err || row) return resolve();
+        const hash = bcrypt.hashSync('Admin@123', 10);
+        db.run(
+          `INSERT INTO users (username, email, password, role, is_verified)
+           VALUES ('admin', 'admin@evassistant.com', ?, 'admin', 1)`,
+          [hash],
+          (err) => {
+            if (err) console.error('[db] Admin seed error:', err.message);
+            else     console.log('[db] Default admin created (email: admin@evassistant.com, password: Admin@123)');
+            resolve();
+          }
+        );
+      });
+      return;
     }
-    console.log('[db] Schema ready.');
-
-    if (!toBool(process.env.DB_SEED_ADMIN)) return resolve();
-
-    // Seed default admin only if none exists
-    db.get("SELECT id FROM users WHERE role = 'admin' LIMIT 1", (err, row) => {
-      if (err || row) return resolve(); // already exists or error — skip
-      const hash = bcrypt.hashSync('Admin@123', 10);
-      db.run(
-        `INSERT INTO users (username, email, password, role, is_verified)
-         VALUES ('admin', 'admin@evassistant.com', ?, 'admin', 1)`,
-        [hash],
-        (err) => {
-          if (err) console.error('[db] Admin seed error:', err.message);
-          else     console.log('[db] Default admin created (email: admin@evassistant.com, password: Admin@123)');
-          resolve();
-        }
-      );
+    const { name, sql } = TABLES[index];
+    pool.query(sql, (err) => {
+      if (err) {
+        console.error(`[db] Failed to create table "${name}":`, err.message);
+      } else {
+        console.log(`[db] Table ready: ${name}`);
+      }
+      runNext(index + 1); // always continue to next table
     });
-  });
+  };
+  runNext(0);
 });
 
 module.exports = { init, getDb };
