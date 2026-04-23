@@ -43,13 +43,19 @@ if (process.env.RESEND_API_KEY) {
  */
 const sendMail = ({ from, to, subject, html }) => {
   if (resend) {
+    // Resend requires a verified domain for custom from addresses.
+    // Use their built-in test sender which works without domain verification.
     return resend.emails.send({
-      from: from || `EV Assistant <onboarding@resend.dev>`,
+      from: 'EV Assistant <onboarding@resend.dev>',
       to,
       subject,
       html,
     }).then(result => {
-      if (result.error) throw new Error(result.error.message || 'Resend error');
+      if (result.error) {
+        console.error('[mail] Resend error:', JSON.stringify(result.error));
+        throw new Error(result.error.message || 'Resend API error');
+      }
+      console.log('[mail] Email sent via Resend, id:', result.data?.id);
     });
   }
   return new Promise((resolve, reject) => {
