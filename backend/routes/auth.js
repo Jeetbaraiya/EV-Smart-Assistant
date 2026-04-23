@@ -185,7 +185,7 @@ router.post('/forgot-password', [
 
     // Generate a 6-character OTP style token for easier typing
     const token = crypto.randomBytes(3).toString('hex').toUpperCase();
-    const expiresAt = new Date(Date.now() + 3600000).toISOString(); // 1 hour
+    const expiresAt = new Date(Date.now() + 3600000); // 1 hour — pass as Date, not ISO string
 
     dbInstance.run('DELETE FROM password_resets WHERE email = ?', [email], (err) => {
       if (err) console.error(err);
