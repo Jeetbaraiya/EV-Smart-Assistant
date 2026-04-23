@@ -176,7 +176,7 @@ const init = () => new Promise((resolve, reject) => {
     }
     console.log('[db] Connected successfully.');
 
-    if (!toBool(process.env.DB_BOOTSTRAP)) return resolve();
+    // Always ensure schema is up-to-date (all statements use IF NOT EXISTS — safe to run every startup)
     createTables().then(resolve).catch(reject);
   });
 });
