@@ -10,7 +10,7 @@ const { Resend } = require('resend');
 
 // ── Email sender ─────────────────────────────────────────────────────────────
 // Railway blocks ALL outbound SMTP ports (25, 465, 587) — SMTP is impossible.
-// Use HTTP-based providers only:
+// Use HTTP-based providers only. Fresh redeploy trigger.
 //   1. Resend  (free tier restricted to Resend account email without domain)
 //   2. Brevo   (300 emails/day free, any recipient, no domain needed) ← PRIMARY
 //   3. SMTP    (local dev only — will ETIMEDOUT on Railway)
