@@ -43,8 +43,6 @@ if (process.env.RESEND_API_KEY) {
  */
 const sendMail = ({ from, to, subject, html }) => {
   if (resend) {
-    // Resend requires a verified domain for custom from addresses.
-    // Use their built-in test sender which works without domain verification.
     return resend.emails.send({
       from: 'EV Assistant <onboarding@resend.dev>',
       to,
@@ -52,8 +50,9 @@ const sendMail = ({ from, to, subject, html }) => {
       html,
     }).then(result => {
       if (result.error) {
-        console.error('[mail] Resend error:', JSON.stringify(result.error));
-        throw new Error(result.error.message || 'Resend API error');
+        const msg = `Resend error [${result.error.name}]: ${result.error.message}`;
+        console.error('[mail]', msg, JSON.stringify(result.error));
+        throw new Error(msg); // exposed in API response temporarily for diagnosis
       }
       console.log('[mail] Email sent via Resend, id:', result.data?.id);
     });
@@ -244,7 +243,7 @@ router.post('/forgot-password', [
           res.json({ message: 'If that email is registered, a password reset token has been sent.' });
         }).catch((error) => {
           console.error('Error sending email:', error);
-          res.status(500).json({ error: 'Failed to send email' });
+          res.status(500).json({ error: error.message || 'Failed to send email' });
         });
       });
     });
