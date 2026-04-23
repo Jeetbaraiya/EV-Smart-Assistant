@@ -100,32 +100,61 @@ let db   = null;
  * @returns {Promise<void>}
  */
 const init = () => new Promise((resolve, reject) => {
-  // Support both custom DB_* vars and Railway's native MYSQL* plugin vars
-  const hostRaw = toStr(
-    process.env.DB_HOST || process.env.MYSQLHOST || process.env.RAILWAY_TCP_PROXY_DOMAIN,
-    '127.0.0.1'
-  );
-  const host = hostRaw.toLowerCase() === 'localhost' ? '127.0.0.1' : hostRaw;
+  // ── Resolve connection params ─────────────────────────────────────────────
+  // Priority: MYSQL_URL/DATABASE_URL → DB_* vars → Railway MYSQL* plugin vars → defaults
+  let host, port, user, password, database, useSSL;
 
-  const port = Number(
-    (process.env.DB_PORT || process.env.MYSQLPORT || process.env.RAILWAY_TCP_PROXY_PORT || '3306')
-      .toString().trim()
-  );
+  // 1. Try a full connection URL (Railway sometimes provides MYSQL_URL / DATABASE_URL)
+  const connectionUrl =
+    process.env.MYSQL_URL ||
+    process.env.DATABASE_URL ||
+    process.env.MYSQL_PRIVATE_URL;
+
+  if (connectionUrl && connectionUrl.startsWith('mysql')) {
+    try {
+      const u = new URL(connectionUrl);
+      host     = u.hostname;
+      port     = Number(u.port) || 3306;
+      user     = decodeURIComponent(u.username);
+      password = decodeURIComponent(u.password);
+      database = u.pathname.replace(/^\//, '');
+      useSSL   = u.searchParams.get('ssl-mode') !== 'disable';
+      console.log('[db] Using MYSQL_URL / DATABASE_URL');
+    } catch (e) {
+      console.warn('[db] Failed to parse connection URL:', e.message);
+    }
+  }
+
+  // 2. Fallback to individual vars (DB_* first, then Railway MYSQL* plugin vars)
+  if (!host) {
+    const hostRaw = toStr(
+      process.env.DB_HOST || process.env.MYSQLHOST || process.env.RAILWAY_TCP_PROXY_DOMAIN,
+      '127.0.0.1'
+    );
+    host     = hostRaw.toLowerCase() === 'localhost' ? '127.0.0.1' : hostRaw;
+    port     = Number((process.env.DB_PORT || process.env.MYSQLPORT || process.env.RAILWAY_TCP_PROXY_PORT || '3306').toString().trim());
+    user     = toStr(process.env.DB_USER     || process.env.MYSQLUSER,     'root');
+    password = toStr(process.env.DB_PASSWORD || process.env.MYSQLPASSWORD, '');
+    database = toStr(process.env.DB_NAME     || process.env.MYSQLDATABASE, 'ev_assistant');
+    // Railway MySQL requires SSL for non-local connections
+    useSSL   = host !== '127.0.0.1' && host !== 'localhost';
+  }
 
   const poolOptions = {
     host,
     port,
-    user              : toStr(process.env.DB_USER     || process.env.MYSQLUSER,     'root'),
-    password          : toStr(process.env.DB_PASSWORD || process.env.MYSQLPASSWORD, ''),
-    database          : toStr(process.env.DB_NAME     || process.env.MYSQLDATABASE, 'ev_assistant'),
-    waitForConnections : true,
-    connectionLimit   : Number(process.env.DB_CONNECTION_LIMIT || 10),
-    queueLimit        : 0,
-    multipleStatements: true,
-    connectTimeout    : Number(process.env.DB_CONNECT_TIMEOUT  || 10000),
-    enableKeepAlive   : true,
+    user,
+    password,
+    database,
+    waitForConnections   : true,
+    connectionLimit      : Number(process.env.DB_CONNECTION_LIMIT || 10),
+    queueLimit           : 0,
+    multipleStatements   : true,
+    connectTimeout       : Number(process.env.DB_CONNECT_TIMEOUT  || 10000),
+    enableKeepAlive      : true,
     keepAliveInitialDelay: 0,
-    timezone          : 'Z',
+    timezone             : 'Z',
+    ssl                  : useSSL ? { rejectUnauthorized: false } : undefined,
   };
 
   console.log('[db] Connecting to MySQL:', {
@@ -133,6 +162,7 @@ const init = () => new Promise((resolve, reject) => {
     port    : poolOptions.port,
     user    : poolOptions.user,
     database: poolOptions.database,
+    ssl     : useSSL,
   });
 
   pool = mysql.createPool(poolOptions);
