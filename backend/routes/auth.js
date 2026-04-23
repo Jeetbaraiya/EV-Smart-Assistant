@@ -5,41 +5,62 @@ const { body, validationResult } = require('express-validator');
 const db = require('../config/database');
 const { authenticate, JWT_SECRET } = require('../middleware/auth');
 const crypto = require('crypto');
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 
-// Warn early if mail credentials are missing (common cause of live-site SMTP failures)
-if (!process.env.MAIL_USER || !process.env.MAIL_PASS) {
-  console.warn('[mail] WARNING: MAIL_USER or MAIL_PASS env vars are not set. Email sending will fail.');
+// ── Email sender ────────────────────────────────────────────────────────────
+// Uses Resend (HTTP API — never blocked by Railway/cloud firewalls).
+// Falls back to nodemailer SMTP for local dev if RESEND_API_KEY is not set.
+let resend = null;
+let nodemailerTransporter = null;
+
+if (process.env.RESEND_API_KEY) {
+  resend = new Resend(process.env.RESEND_API_KEY);
+  console.log('[mail] Using Resend HTTP API for email delivery.');
+} else {
+  const nodemailer = require('nodemailer');
+  if (!process.env.MAIL_USER || !process.env.MAIL_PASS) {
+    console.warn('[mail] WARNING: No RESEND_API_KEY or MAIL_USER/MAIL_PASS set. Email will fail.');
+  }
+  nodemailerTransporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false,
+    auth: { user: process.env.MAIL_USER, pass: process.env.MAIL_PASS },
+    tls: { rejectUnauthorized: false },
+    connectionTimeout: 10000,
+    socketTimeout: 10000,
+    greetingTimeout: 10000,
+  });
+  nodemailerTransporter.verify((err) => {
+    if (err) console.error('[mail] SMTP error:', err.message);
+    else console.log('[mail] SMTP ready (nodemailer fallback)');
+  });
 }
 
-// Port 587 + STARTTLS works on virtually all cloud hosts.
-// connectionTimeout / socketTimeout prevent infinite hangs if Railway blocks SMTP.
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 587,
-  secure: false, // STARTTLS — required for port 587
-  auth: {
-    user: process.env.MAIL_USER,
-    pass: process.env.MAIL_PASS,
-  },
-  tls: {
-    rejectUnauthorized: false,
-  },
-  connectionTimeout: 10000, // 10s — fail fast if SMTP is unreachable
-  socketTimeout: 10000,
-  greetingTimeout: 10000,
-  pool: false,
-});
-
-// Verify connection configuration
-transporter.verify((error, success) => {
-  if (error) {
-    console.error('[mail] SMTP Connection Error:', error.message);
-  } else {
-    console.log('[mail] SMTP Server is ready to send emails');
+/**
+ * Unified sendMail helper — uses Resend if available, otherwise nodemailer.
+ * @returns Promise<void> — rejects on failure
+ */
+const sendMail = ({ from, to, subject, html }) => {
+  if (resend) {
+    return resend.emails.send({
+      from: from || `EV Assistant <onboarding@resend.dev>`,
+      to,
+      subject,
+      html,
+    }).then(result => {
+      if (result.error) throw new Error(result.error.message || 'Resend error');
+    });
   }
-});
+  return new Promise((resolve, reject) => {
+    nodemailerTransporter.sendMail({ from, to, subject, html }, (err) => {
+      if (err) reject(err); else resolve();
+    });
+  });
+};
+
 const router = express.Router();
+
 
 // Register
 router.post('/register', [
@@ -197,15 +218,15 @@ router.post('/forgot-password', [
       dbInstance.run('INSERT INTO password_resets (email, token, expires_at) VALUES (?, ?, ?)', [email, token, expiresAt], (err) => {
         if (err) return res.status(500).json({ error: 'Database error' });
 
-        const mailOptions = {
-          from: process.env.MAIL_USER,
+        sendMail({
+          from: `EV Assistant <${process.env.MAIL_USER || 'noreply@evassistant.com'}>`,
           to: email,
           subject: 'EV Assistant - Password Reset',
           html: `
             <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
               <h2 style="color: #4a90e2; text-align: center;">Reset Your Password</h2>
               <p>Hello,</p>
-              <p>You recently requested to reset the password for your EV Smart Route & Charging Assistant account.</p>
+              <p>You recently requested to reset the password for your EV Smart Route &amp; Charging Assistant account.</p>
               <p>Please use the following 6-character code to reset your password:</p>
               <div style="background-color: #f4f4f4; padding: 15px; text-align: center; border-radius: 5px; font-size: 24px; font-weight: bold; letter-spacing: 5px; margin: 20px 0;">
                 ${token}
@@ -213,14 +234,11 @@ router.post('/forgot-password', [
               <p>If you didn't request a password reset, you can safely ignore this email. This code will expire in 1 hour.</p>
             </div>
           `
-        };
-
-        transporter.sendMail(mailOptions, (error, info) => {
-          if (error) {
-            console.error('Error sending email:', error);
-            return res.status(500).json({ error: 'Failed to send email' });
-          }
+        }).then(() => {
           res.json({ message: 'If that email is registered, a password reset token has been sent.' });
+        }).catch((error) => {
+          console.error('Error sending email:', error);
+          res.status(500).json({ error: 'Failed to send email' });
         });
       });
     });
@@ -299,8 +317,8 @@ router.post('/request-password-change', authenticate, [
 
           // Send email to current email
           // Send email to current email
-          const mailOptions = {
-            from: process.env.MAIL_USER,
+          sendMail({
+            from: `EV Assistant <${process.env.MAIL_USER || 'noreply@evassistant.com'}>`,
             to: user.email,
             subject: 'EV Assistant - Verify Password Change',
             html: `
@@ -315,14 +333,11 @@ router.post('/request-password-change', authenticate, [
                 <p>If you did not request this, please ignore this email. This code will expire in 15 minutes.</p>
               </div>
             `
-          };
-
-          transporter.sendMail(mailOptions, (error, info) => {
-            if (error) {
-              console.error('Error sending OTP email:', error);
-              return res.status(500).json({ error: 'Failed to send OTP email' });
-            }
+          }).then(() => {
             res.json({ message: 'OTP sent to your registered email address.' });
+          }).catch((error) => {
+            console.error('Error sending OTP email:', error);
+            res.status(500).json({ error: 'Failed to send OTP email' });
           });
         }
       );
@@ -409,11 +424,9 @@ router.post('/request-email-change', authenticate, [
           (err) => {
             if (err) return res.status(500).json({ error: 'Failed to create OTP request' });
 
-            // Send email to the *current* registered email
-            // Send email to the *current* registered email
-            const mailOptions = {
-              from: process.env.MAIL_USER,
-              to: user.email, // Sent to current email!
+            sendMail({
+              from: `EV Assistant <${process.env.MAIL_USER || 'noreply@evassistant.com'}>`,
+              to: user.email,
               subject: 'EV Assistant - Verify Email Change',
               html: `
                 <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
@@ -427,14 +440,11 @@ router.post('/request-email-change', authenticate, [
                   <p>If you did not request this, please ignore this email and your account will remain secure. This code will expire in 15 minutes.</p>
                 </div>
               `
-            };
-
-            transporter.sendMail(mailOptions, (error, info) => {
-              if (error) {
-                console.error('Error sending OTP email:', error);
-                return res.status(500).json({ error: 'Failed to send OTP email' });
-              }
+            }).then(() => {
               res.json({ message: 'OTP sent to your current email address.' });
+            }).catch((error) => {
+              console.error('Error sending OTP email:', error);
+              res.status(500).json({ error: 'Failed to send OTP email' });
             });
           }
         );
