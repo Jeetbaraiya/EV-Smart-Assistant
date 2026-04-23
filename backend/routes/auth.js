@@ -13,7 +13,7 @@ if (!process.env.MAIL_USER || !process.env.MAIL_PASS) {
 }
 
 // Port 587 + STARTTLS works on virtually all cloud hosts.
-// Port 465 (SSL) is frequently blocked by cloud providers (Render, Railway, Fly, etc.).
+// connectionTimeout / socketTimeout prevent infinite hangs if Railway blocks SMTP.
 const transporter = nodemailer.createTransport({
   host: 'smtp.gmail.com',
   port: 587,
@@ -23,8 +23,12 @@ const transporter = nodemailer.createTransport({
     pass: process.env.MAIL_PASS,
   },
   tls: {
-    rejectUnauthorized: false, // avoids SNI/cert issues on some VPS environments
+    rejectUnauthorized: false,
   },
+  connectionTimeout: 10000, // 10s — fail fast if SMTP is unreachable
+  socketTimeout: 10000,
+  greetingTimeout: 10000,
+  pool: false,
 });
 
 // Verify connection configuration
