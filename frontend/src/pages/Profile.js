@@ -89,7 +89,7 @@ const Profile = () => {
               </div>
               <div className="info-content">
                 <label>Date Joined</label>
-                <span>{user?.created_at ? new Date(user.created_at).toLocaleDateString('en-IN', { dateStyle: 'long' }) : 'January 20, 2024'}</span>
+                <span>{user?.created_at ? new Date(user.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Not available'}</span>
               </div>
             </div>
 

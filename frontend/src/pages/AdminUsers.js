@@ -136,7 +136,7 @@ const AdminUsers = () => {
                       </div>
                     </td>
                     <td style={{ color: '#94a3b8', fontSize: '0.85rem' }}>
-                      📅 {new Date(u.created_at).toLocaleDateString()}
+                      📅 {u.created_at ? new Date(u.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'N/A'}
                     </td>
                     <td>
                       <span className="badge badge-gray">👤 {u.role?.toUpperCase()}</span>

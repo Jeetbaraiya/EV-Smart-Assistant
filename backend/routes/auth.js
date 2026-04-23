@@ -75,16 +75,13 @@ router.post('/register', [
             { expiresIn: '7d' }
           );
 
-          res.status(201).json({
-            message: 'User registered successfully',
-            token,
-            user: {
-              id: this.lastID,
-              username,
-              email,
-              role,
-              is_verified: role === 'user' ? 1 : 0
-            }
+          // Fetch the full user record to get created_at
+          dbInstance.get('SELECT id, username, email, role, is_verified, created_at FROM users WHERE id = ?', [this.lastID], (err2, newUser) => {
+            res.status(201).json({
+              message: 'User registered successfully',
+              token,
+              user: newUser || { id: this.lastID, username, email, role, is_verified: role === 'user' ? 1 : 0 }
+            });
           });
         }
       );
@@ -136,7 +133,8 @@ router.post('/login', [
           username: user.username,
           email: user.email,
           role: user.role,
-          is_verified: user.is_verified
+          is_verified: user.is_verified,
+          created_at: user.created_at
         }
       });
     });
@@ -148,7 +146,7 @@ router.post('/login', [
 // Get current user
 router.get('/me', authenticate, (req, res) => {
   const dbInstance = db.getDb();
-  dbInstance.get('SELECT id, username, email, role, is_verified FROM users WHERE id = ?', [req.user.id], (err, user) => {
+  dbInstance.get('SELECT id, username, email, role, is_verified, created_at FROM users WHERE id = ?', [req.user.id], (err, user) => {
     if (err) {
       return res.status(500).json({ error: 'Database error' });
     }

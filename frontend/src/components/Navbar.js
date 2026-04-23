@@ -340,6 +340,12 @@ const Navbar = () => {
             </Link>
           </div>
 
+          {/* Mobile-only project name in the center gap */}
+          <div className="mobile-navbar-title">
+            <span className="mobile-navbar-title-primary">EV Smart</span>
+            <span className="mobile-navbar-title-secondary"> Assistant</span>
+          </div>
+
           <button
             className={`mobile-menu-toggle ${isMobileMenuOpen ? 'active' : ''}`}
             onClick={toggleMobileMenu}
@@ -429,6 +435,64 @@ const Navbar = () => {
                       <span className="nav-icon"><IconRegister /></span>
                       REGISTER
                     </NavLink>
+
+                    {/* ── Section 1: App Features Highlight ── */}
+                    <div className="menu-section-divider" />
+                    <div className="menu-features">
+                      <p className="menu-section-label">✨ What You Get</p>
+                      <div className="menu-feature-item">
+                        <span className="menu-feature-icon">⚡</span>
+                        <div>
+                          <span className="menu-feature-title">Smart Route Planning</span>
+                          <span className="menu-feature-desc">Optimize every journey for your EV</span>
+                        </div>
+                      </div>
+                      <div className="menu-feature-item">
+                        <span className="menu-feature-icon">🔋</span>
+                        <div>
+                          <span className="menu-feature-title">Range Calculator</span>
+                          <span className="menu-feature-desc">Know exactly how far you can go</span>
+                        </div>
+                      </div>
+                      <div className="menu-feature-item">
+                        <span className="menu-feature-icon">📍</span>
+                        <div>
+                          <span className="menu-feature-title">Find Charging Stations</span>
+                          <span className="menu-feature-desc">45+ verified stations across India</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* ── Section 3: How It Works ── */}
+                    <div className="menu-section-divider" />
+                    <div className="menu-how-it-works">
+                      <p className="menu-section-label">🗺️ How It Works</p>
+                      <div className="menu-steps">
+                        <div className="menu-step">
+                          <span className="menu-step-num">1</span>
+                          <span className="menu-step-text">Register your account</span>
+                        </div>
+                        <span className="menu-step-arrow">→</span>
+                        <div className="menu-step">
+                          <span className="menu-step-num">2</span>
+                          <span className="menu-step-text">Add your vehicle</span>
+                        </div>
+                        <span className="menu-step-arrow">→</span>
+                        <div className="menu-step">
+                          <span className="menu-step-num">3</span>
+                          <span className="menu-step-text">Plan your route</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* ── Section 6: App Promo Banner ── */}
+                    <div className="menu-promo-banner">
+                      <span className="menu-promo-emoji">🚗</span>
+                      <div className="menu-promo-text">
+                        <span className="menu-promo-title">Plan smarter. Drive farther.</span>
+                        <span className="menu-promo-sub">EV Smart Assistant — Free to use!</span>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
