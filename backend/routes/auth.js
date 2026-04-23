@@ -9,80 +9,105 @@ const nodemailer = require('nodemailer');
 const { Resend } = require('resend');
 
 // ── Email sender ─────────────────────────────────────────────────────────────
-// Strategy: Try Resend first (HTTP API), fall back to Gmail SMTP.
-// Resend free tier only sends to the Resend account email without domain verification.
-// Gmail SMTP (port 465 SSL) works on Railway as a reliable fallback.
+// Railway blocks ALL outbound SMTP ports (25, 465, 587) — SMTP is impossible.
+// Use HTTP-based providers only:
+//   1. Resend  (free tier restricted to Resend account email without domain)
+//   2. Brevo   (300 emails/day free, any recipient, no domain needed) ← PRIMARY
+//   3. SMTP    (local dev only — will ETIMEDOUT on Railway)
 
 let resend = null;
 let smtpTransporter = null;
 
 if (process.env.RESEND_API_KEY) {
   resend = new Resend(process.env.RESEND_API_KEY);
-  console.log('[mail] Resend API key loaded.');
+  console.log('[mail] Resend loaded.');
 }
 
+// SMTP for local dev only
 if (process.env.MAIL_USER && process.env.MAIL_PASS) {
   smtpTransporter = nodemailer.createTransport({
-    host: '74.125.133.108', // smtp.gmail.com IPv4 — Railway doesn't support IPv6
-    port: 465,
-    secure: true,           // SSL on port 465
-    family: 4,              // force IPv4 — Railway blocks IPv6 (ENETUNREACH)
+    host: 'smtp.gmail.com', port: 587, secure: false, family: 4,
     auth: { user: process.env.MAIL_USER, pass: process.env.MAIL_PASS },
     tls: { rejectUnauthorized: false },
-    connectionTimeout: 30000,
-    socketTimeout: 30000,
-    greetingTimeout: 30000,
+    connectionTimeout: 15000, socketTimeout: 15000, greetingTimeout: 15000,
   });
-  smtpTransporter.verify((err) => {
-    if (err) console.error('[mail] Gmail SMTP verify error:', err.message, err.code);
-    else console.log('[mail] Gmail SMTP ready (IPv4 forced).');
-  });
-} else {
-  console.warn('[mail] WARNING: MAIL_USER / MAIL_PASS not set. SMTP fallback disabled.');
 }
 
 /**
- * sendMail — tries Resend first, then falls back to Gmail SMTP.
+ * Send via Brevo HTTP API (HTTPS — never blocked by Railway).
+ * Setup: brevo.com → free account → Settings → SMTP & API → API Keys
+ *        Then verify your sender email under Settings → Senders.
+ * Env vars needed: BREVO_API_KEY, BREVO_SENDER (e.g. jeet.b.baraiya7@gmail.com)
+ */
+const sendViaBrevo = async ({ to, subject, html }) => {
+  const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: {
+      'api-key': process.env.BREVO_API_KEY,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+    body: JSON.stringify({
+      sender: {
+        name: 'EV Assistant',
+        email: process.env.BREVO_SENDER || process.env.MAIL_USER || 'noreply@evassistant.com',
+      },
+      to: [{ email: to }],
+      subject,
+      htmlContent: html,
+    }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.message || `Brevo HTTP ${res.status}`);
+  }
+  const data = await res.json().catch(() => ({}));
+  console.log('[mail] Sent via Brevo, messageId:', data.messageId);
+};
+
+/**
+ * sendMail — ordered by Railway compatibility:
+ *  1. Brevo   (HTTP — primary for production on Railway)
+ *  2. Resend  (HTTP — fallback, restricted in test mode)
+ *  3. SMTP    (local dev only)
  */
 const sendMail = async ({ to, subject, html }) => {
-  // 1. Try Resend
+  // 1. Brevo (best for Railway — HTTP, any recipient, free)
+  if (process.env.BREVO_API_KEY) {
+    await sendViaBrevo({ to, subject, html });
+    return;
+  }
+
+  // 2. Resend (HTTP but test-mode restricted)
   if (resend) {
     const result = await resend.emails.send({
       from: 'EV Assistant <onboarding@resend.dev>',
-      to,
-      subject,
-      html,
+      to, subject, html,
     });
     if (!result.error) {
-      console.log('[mail] Sent via Resend, id:', result.data?.id);
-      return; // success
+      console.log('[mail] Sent via Resend:', result.data?.id);
+      return;
     }
-    // Resend test-mode restriction → fall through to SMTP
-    console.warn('[mail] Resend failed, falling back to SMTP:', result.error.message);
+    console.warn('[mail] Resend failed:', result.error.message);
+    throw new Error(`Resend error: ${result.error.message}`);
   }
 
-  // 2. Fall back to Gmail SMTP
+  // 3. SMTP (local dev — ETIMEDOUT on Railway)
   if (smtpTransporter) {
     await new Promise((resolve, reject) => {
       smtpTransporter.sendMail(
         { from: `EV Assistant <${process.env.MAIL_USER}>`, to, subject, html },
         (err, info) => {
-          if (err) {
-            console.error('[mail] SMTP error:', err.message, err.code);
-            reject(new Error(`SMTP error [${err.code || 'UNKNOWN'}]: ${err.message}`));
-          } else {
-            console.log('[mail] Sent via Gmail SMTP, msgId:', info.messageId);
-            resolve();
-          }
+          if (err) reject(new Error(`SMTP error [${err.code}]: ${err.message}`));
+          else { console.log('[mail] SMTP sent:', info.messageId); resolve(); }
         }
       );
     });
     return;
   }
 
-  throw new Error('No email provider configured. Set RESEND_API_KEY or MAIL_USER/MAIL_PASS.');
+  throw new Error('No email provider configured. Add BREVO_API_KEY to Railway environment variables.');
 };
-
 
 
 const router = express.Router();
