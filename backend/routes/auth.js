@@ -5,64 +5,82 @@ const { body, validationResult } = require('express-validator');
 const db = require('../config/database');
 const { authenticate, JWT_SECRET } = require('../middleware/auth');
 const crypto = require('crypto');
+const nodemailer = require('nodemailer');
 const { Resend } = require('resend');
 
-// ── Email sender ────────────────────────────────────────────────────────────
-// Uses Resend (HTTP API — never blocked by Railway/cloud firewalls).
-// Falls back to nodemailer SMTP for local dev if RESEND_API_KEY is not set.
+// ── Email sender ─────────────────────────────────────────────────────────────
+// Strategy: Try Resend first (HTTP API), fall back to Gmail SMTP.
+// Resend free tier only sends to the Resend account email without domain verification.
+// Gmail SMTP (port 465 SSL) works on Railway as a reliable fallback.
+
 let resend = null;
-let nodemailerTransporter = null;
+let smtpTransporter = null;
 
 if (process.env.RESEND_API_KEY) {
   resend = new Resend(process.env.RESEND_API_KEY);
-  console.log('[mail] Using Resend HTTP API for email delivery.');
-} else {
-  const nodemailer = require('nodemailer');
-  if (!process.env.MAIL_USER || !process.env.MAIL_PASS) {
-    console.warn('[mail] WARNING: No RESEND_API_KEY or MAIL_USER/MAIL_PASS set. Email will fail.');
-  }
-  nodemailerTransporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 587,
-    secure: false,
+  console.log('[mail] Resend API key loaded.');
+}
+
+if (process.env.MAIL_USER && process.env.MAIL_PASS) {
+  smtpTransporter = nodemailer.createTransport({
+    service: 'gmail',           // uses Gmail's well-known SMTP config
     auth: { user: process.env.MAIL_USER, pass: process.env.MAIL_PASS },
     tls: { rejectUnauthorized: false },
-    connectionTimeout: 10000,
-    socketTimeout: 10000,
-    greetingTimeout: 10000,
+    connectionTimeout: 30000,   // 30s — give Railway enough time
+    socketTimeout: 30000,
+    greetingTimeout: 30000,
   });
-  nodemailerTransporter.verify((err) => {
-    if (err) console.error('[mail] SMTP error:', err.message);
-    else console.log('[mail] SMTP ready (nodemailer fallback)');
+  smtpTransporter.verify((err) => {
+    if (err) console.error('[mail] Gmail SMTP verify error:', err.message, err.code);
+    else console.log('[mail] Gmail SMTP ready.');
   });
+} else {
+  console.warn('[mail] WARNING: MAIL_USER / MAIL_PASS not set. SMTP fallback disabled.');
 }
 
 /**
- * Unified sendMail helper — uses Resend if available, otherwise nodemailer.
- * @returns Promise<void> — rejects on failure
+ * sendMail — tries Resend first, then falls back to Gmail SMTP.
  */
-const sendMail = ({ from, to, subject, html }) => {
+const sendMail = async ({ to, subject, html }) => {
+  // 1. Try Resend
   if (resend) {
-    return resend.emails.send({
+    const result = await resend.emails.send({
       from: 'EV Assistant <onboarding@resend.dev>',
       to,
       subject,
       html,
-    }).then(result => {
-      if (result.error) {
-        const msg = `Resend error [${result.error.name}]: ${result.error.message}`;
-        console.error('[mail]', msg, JSON.stringify(result.error));
-        throw new Error(msg); // exposed in API response temporarily for diagnosis
-      }
-      console.log('[mail] Email sent via Resend, id:', result.data?.id);
     });
+    if (!result.error) {
+      console.log('[mail] Sent via Resend, id:', result.data?.id);
+      return; // success
+    }
+    // Resend test-mode restriction → fall through to SMTP
+    console.warn('[mail] Resend failed, falling back to SMTP:', result.error.message);
   }
-  return new Promise((resolve, reject) => {
-    nodemailerTransporter.sendMail({ from, to, subject, html }, (err) => {
-      if (err) reject(err); else resolve();
+
+  // 2. Fall back to Gmail SMTP
+  if (smtpTransporter) {
+    await new Promise((resolve, reject) => {
+      smtpTransporter.sendMail(
+        { from: `EV Assistant <${process.env.MAIL_USER}>`, to, subject, html },
+        (err, info) => {
+          if (err) {
+            console.error('[mail] SMTP error:', err.message, err.code);
+            reject(new Error(`SMTP error [${err.code || 'UNKNOWN'}]: ${err.message}`));
+          } else {
+            console.log('[mail] Sent via Gmail SMTP, msgId:', info.messageId);
+            resolve();
+          }
+        }
+      );
     });
-  });
+    return;
+  }
+
+  throw new Error('No email provider configured. Set RESEND_API_KEY or MAIL_USER/MAIL_PASS.');
 };
+
+
 
 const router = express.Router();
 
