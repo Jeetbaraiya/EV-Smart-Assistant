@@ -23,16 +23,19 @@ if (process.env.RESEND_API_KEY) {
 
 if (process.env.MAIL_USER && process.env.MAIL_PASS) {
   smtpTransporter = nodemailer.createTransport({
-    service: 'gmail',           // uses Gmail's well-known SMTP config
+    host: '74.125.133.108', // smtp.gmail.com IPv4 — Railway doesn't support IPv6
+    port: 465,
+    secure: true,           // SSL on port 465
+    family: 4,              // force IPv4 — Railway blocks IPv6 (ENETUNREACH)
     auth: { user: process.env.MAIL_USER, pass: process.env.MAIL_PASS },
     tls: { rejectUnauthorized: false },
-    connectionTimeout: 30000,   // 30s — give Railway enough time
+    connectionTimeout: 30000,
     socketTimeout: 30000,
     greetingTimeout: 30000,
   });
   smtpTransporter.verify((err) => {
     if (err) console.error('[mail] Gmail SMTP verify error:', err.message, err.code);
-    else console.log('[mail] Gmail SMTP ready.');
+    else console.log('[mail] Gmail SMTP ready (IPv4 forced).');
   });
 } else {
   console.warn('[mail] WARNING: MAIL_USER / MAIL_PASS not set. SMTP fallback disabled.');
