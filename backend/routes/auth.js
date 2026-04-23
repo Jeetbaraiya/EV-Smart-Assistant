@@ -78,14 +78,17 @@ const sendMail = async ({ to, subject, html }) => {
     return;
   }
 
-  // 2. Resend (HTTP but test-mode restricted)
+  // 2. Resend (HTTP but test-mode restricted to Resend account email)
+  // Set RESEND_OVERRIDE_TO=jeet.b.baraiya7@gmail.com in Railway to redirect
+  // all emails to your Resend account email (Gmail ignores dots, same inbox).
   if (resend) {
+    const sendTo = process.env.RESEND_OVERRIDE_TO || to;
     const result = await resend.emails.send({
       from: 'EV Assistant <onboarding@resend.dev>',
-      to, subject, html,
+      to: sendTo, subject, html,
     });
     if (!result.error) {
-      console.log('[mail] Sent via Resend:', result.data?.id);
+      console.log('[mail] Sent via Resend to:', sendTo, 'id:', result.data?.id);
       return;
     }
     console.warn('[mail] Resend failed:', result.error.message);
