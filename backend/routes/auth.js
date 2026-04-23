@@ -7,13 +7,23 @@ const { authenticate, JWT_SECRET } = require('../middleware/auth');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 
+// Warn early if mail credentials are missing (common cause of live-site SMTP failures)
+if (!process.env.MAIL_USER || !process.env.MAIL_PASS) {
+  console.warn('[mail] WARNING: MAIL_USER or MAIL_PASS env vars are not set. Email sending will fail.');
+}
+
+// Port 587 + STARTTLS works on virtually all cloud hosts.
+// Port 465 (SSL) is frequently blocked by cloud providers (Render, Railway, Fly, etc.).
 const transporter = nodemailer.createTransport({
   host: 'smtp.gmail.com',
-  port: 465,
-  secure: true,
+  port: 587,
+  secure: false, // STARTTLS — required for port 587
   auth: {
     user: process.env.MAIL_USER,
     pass: process.env.MAIL_PASS,
+  },
+  tls: {
+    rejectUnauthorized: false, // avoids SNI/cert issues on some VPS environments
   },
 });
 
