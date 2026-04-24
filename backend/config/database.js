@@ -339,56 +339,57 @@ const createTables = () => new Promise((resolve) => {
     if (index >= TABLES.length) {
       console.log('[db] Schema ready.');
 
-      // ── Startup Migration: Ensure bookings.station_id is VARCHAR ────────────────
-      // This allows booking external stations with string IDs (e.g., 'statiq_123')
-      const migrationSql = `
-        SET @fk_name = (
-          SELECT CONSTRAINT_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
-          WHERE TABLE_SCHEMA = '${database}'
-            AND TABLE_NAME = 'bookings'
-            AND COLUMN_NAME = 'station_id'
-            AND REFERENCED_TABLE_NAME IS NOT NULL
-          LIMIT 1
-        );
-        SET @drop_fk = IF(@fk_name IS NOT NULL,
-          CONCAT('ALTER TABLE bookings DROP FOREIGN KEY ', @fk_name),
-          'SELECT 1'
-        );
-        PREPARE dfk FROM @drop_fk; EXECUTE dfk; DEALLOCATE PREPARE dfk;
+      /** ── Startup Migration: Ensure bookings.station_id is VARCHAR ── */
+      const runMigration = async () => {
+        try {
+          // 1. Check if we need to drop a foreign key
+          const [fkRows] = await pool.promise().query(`
+            SELECT CONSTRAINT_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
+            WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'bookings' 
+            AND COLUMN_NAME = 'station_id' AND REFERENCED_TABLE_NAME IS NOT NULL
+          `, [database]);
 
-        SET @col_type = (
-          SELECT COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS
-          WHERE TABLE_SCHEMA = '${database}'
-            AND TABLE_NAME = 'bookings'
-            AND COLUMN_NAME = 'station_id'
-        );
-        SET @alt_col = IF(@col_type LIKE 'int%',
-          'ALTER TABLE bookings MODIFY COLUMN station_id VARCHAR(255) NOT NULL',
-          'SELECT 1'
-        );
-        PREPARE aco FROM @alt_col; EXECUTE aco; DEALLOCATE PREPARE aco;
-      `;
-
-      pool.query(migrationSql, (migErr) => {
-        if (migErr) console.error('[db] Startup migration error:', migErr.message);
-        else        console.log('[db] Startup migrations applied/checked.');
-
-        if (!toBool(process.env.DB_SEED_ADMIN)) return resolve();
-        // ... proceed to admin seeding
-      // Seed default admin only if none exists
-      db.get("SELECT id FROM users WHERE role = 'admin' LIMIT 1", (err, row) => {
-        if (err || row) return resolve();
-        const hash = bcrypt.hashSync('Admin@123', 10);
-        db.run(
-          `INSERT INTO users (username, email, password, role, is_verified)
-           VALUES ('admin', 'admin@evassistant.com', ?, 'admin', 1)`,
-          [hash],
-          (err) => {
-            if (err) console.error('[db] Admin seed error:', err.message);
-            else     console.log('[db] Default admin created (email: admin@evassistant.com, password: Admin@123)');
-            resolve();
+          if (fkRows && fkRows.length > 0) {
+            const fkName = fkRows[0].CONSTRAINT_NAME;
+            console.log(`[db-mig] Dropping FK: ${fkName}`);
+            await pool.promise().query(`ALTER TABLE bookings DROP FOREIGN KEY ${fkName}`);
           }
-        );
+
+          // 2. Check if we need to convert to VARCHAR
+          const [colRows] = await pool.promise().query(`
+            SELECT COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS
+            WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'bookings' AND COLUMN_NAME = 'station_id'
+          `, [database]);
+
+          if (colRows && colRows.length > 0 && colRows[0].COLUMN_TYPE.toLowerCase().includes('int')) {
+            console.log('[db-mig] Converting bookings.station_id to VARCHAR(255)');
+            await pool.promise().query(`ALTER TABLE bookings MODIFY COLUMN station_id VARCHAR(255) NOT NULL`);
+          }
+          console.log('[db-mig] Startup migrations verified.');
+        } catch (mErr) {
+          console.error('[db-mig] Migration skipped/failed:', mErr.message);
+          // We don't throw here to ensure the app still starts
+        }
+      };
+
+      // Run migration then proceed to seeding
+      runMigration().finally(() => {
+        if (!toBool(process.env.DB_SEED_ADMIN)) return resolve();
+        
+        db.get("SELECT id FROM users WHERE role = 'admin' LIMIT 1", (err, row) => {
+          if (err || row) return resolve();
+          const hash = bcrypt.hashSync('Admin@123', 10);
+          db.run(
+            `INSERT INTO users (username, email, password, role, is_verified)
+             VALUES ('admin', 'admin@evassistant.com', ?, 'admin', 1)`,
+            [hash],
+            (err) => {
+              if (err) console.error('[db] Admin seed error:', err.message);
+              else     console.log('[db] Default admin created');
+              resolve();
+            }
+          );
+        });
       });
       return;
     }
