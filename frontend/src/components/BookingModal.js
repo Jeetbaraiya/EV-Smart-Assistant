@@ -143,15 +143,19 @@ const BookingModal = ({ station, onClose, onBookingSuccess, getToken, isAuthenti
         stationConnectors = data.connectors;
       } else {
         // Synthesize connectors from station data
-        // Handle comma-separated types (e.g., "CCS2, Type 2")
-        const types = (station.connector_type || (station.power_kw > 50 ? 'DC Fast Charger' : 'AC Standard'))
-          .split(',')
-          .map(t => t.trim());
+        // Handle multiple types separated by commas, slashes, or "and"
+        let rawTypes = station.connector_type || (station.power_kw > 50 ? 'DC Fast Charger' : 'AC Standard');
+        
+        // Split by common separators: comma, slash, or the word " and "
+        const types = rawTypes
+          .split(/,|\/|\s+and\s+/)
+          .map(t => t.trim())
+          .filter(t => t.length > 0);
           
         stationConnectors = types.map((t, idx) => ({
           id: `synth-${station.id}-${idx}`,
           type: t,
-          power: station.power_kw || (t.includes('DC') || t.includes('CCS') ? 50 : 22),
+          power: station.power_kw || (t.toLowerCase().includes('dc') || t.toLowerCase().includes('ccs') || t.toLowerCase().includes('fast') ? 50 : 22),
           price_per_kwh: station.price_per_kw || station.price_per_kwh || 15,
           status: 'available',
           is_virtual: true
