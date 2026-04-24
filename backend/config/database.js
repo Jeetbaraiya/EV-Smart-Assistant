@@ -356,9 +356,15 @@ const createTables = () => new Promise((resolve) => {
               try {
                 await pool.promise().query(`ALTER TABLE bookings DROP FOREIGN KEY ${fkName}`);
               } catch (e) {
-                console.warn(`[db-mig] Failed to drop FK ${fkName} (might be already gone):`, e.message);
+                console.warn(`[db-mig] Failed to drop FK ${fkName}:`, e.message);
               }
             }
+          }
+
+          // Force-drop common FK names if still blocked
+          const commonFks = ['bookings_ibfk_1', 'bookings_station_id_foreign'];
+          for (const fk of commonFks) {
+            try { await pool.promise().query(`ALTER TABLE bookings DROP FOREIGN KEY ${fk}`); } catch (e) {}
           }
 
           // 2. Check if we need to convert to VARCHAR

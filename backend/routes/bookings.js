@@ -116,9 +116,7 @@ router.post('/', authenticate, [
               if (err2) {
                 console.error('[Booking Fallback Error]', err2);
                 return res.status(500).json({ 
-                  error: 'Booking failed.', 
-                  details: err2.message,
-                  code: err2.code
+                  error: `Booking failed: ${err2.message || 'Unknown error'}`
                 });
               }
               res.status(201).json({
@@ -137,7 +135,7 @@ router.post('/', authenticate, [
     );
   } catch (err) {
     console.error('Booking error:', err);
-    res.status(500).json({ error: 'Server error during booking. Please try again.' });
+    res.status(500).json({ error: `Server error: ${err.message}` });
   }
 });
 
