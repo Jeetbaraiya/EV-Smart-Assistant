@@ -207,7 +207,8 @@ const BookingModal = ({ station, onClose, onBookingSuccess, getToken, isAuthenti
         if (onBookingSuccess) onBookingSuccess(data.booking);
         setTimeout(() => onClose(), 2000);
       } else {
-        setError(data.error || 'Failed to create booking');
+        const errorMsg = data.details ? `Booking failed: ${data.details}` : (data.error || 'Failed to create booking');
+        setError(errorMsg);
       }
     } catch (err) {
       setError('Network error. Please try again.');
