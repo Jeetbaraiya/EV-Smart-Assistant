@@ -34,12 +34,12 @@ router.post('/', authenticate, [
   const userId = req.user.id;
   const dbInstance = db.getDb();
 
-  const startDate = new Date(start_time);
-  const endDate = new Date(startDate.getTime() + duration_minutes * 60000);
+  // Normalize ISO strings to MySQL DATETIME format (YYYY-MM-DD HH:MM:SS)
+  const sqlStart = new Date(start_time).toISOString().slice(0, 19).replace('T', ' ');
+  const sqlEnd = new Date(new Date(start_time).getTime() + duration_minutes * 60000)
+    .toISOString().slice(0, 19).replace('T', ' ');
 
-  const formatSqlDate = (date) => date.toISOString();
-  const sqlStart = formatSqlDate(startDate);
-  const sqlEnd = formatSqlDate(endDate);
+  console.log(`[Booking] Normalizing time: ${start_time} -> ${sqlStart}`);
 
   try {
     if (!isVirtual) {
