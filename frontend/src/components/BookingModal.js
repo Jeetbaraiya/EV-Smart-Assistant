@@ -65,25 +65,38 @@ const BookingModal = ({ station, onClose, onBookingSuccess, getToken, isAuthenti
         const isPast = isToday && i <= currHour;
         
         // Check if already booked
-        const isOccupied = bookedSlots.some(b => {
-          const bStart = new Date(b.start_time);
-          const bIst = new Date(bStart.getTime() + istOffset);
-          const bHour = bIst.getUTCHours();
-          const bDate = bIst.toISOString().split('T')[0];
+        const isOccupied = (() => {
+          // Find all bookings for this specific hour
+          const bookingsForHour = bookedSlots.filter(b => {
+            const bStart = new Date(b.start_time);
+            const bIst = new Date(bStart.getTime() + istOffset);
+            const bHour = bIst.getUTCHours();
+            const bDate = bIst.toISOString().split('T')[0];
+            return bDate === bookingDate && bHour === i;
+          });
 
-          if (bDate !== bookingDate || bHour !== i) return false;
+          if (bookingsForHour.length === 0) return false;
 
-          // If a connector is selected, only show as occupied if THAT connector is taken
+          // Case 1: Specific connector selected
           if (selectedConnector) {
-            const matchesConnector = selectedConnector.is_virtual 
-                ? (!b.connector_id && b.connector_type_label === selectedConnector.type)
-                : (String(b.connector_id) === String(selectedConnector.id));
-            return matchesConnector;
+            return bookingsForHour.some(b => {
+              // Real connector: Match by ID
+              if (!selectedConnector.is_virtual && b.connector_id) {
+                return String(b.connector_id) === String(selectedConnector.id);
+              }
+              // Virtual/Synth connector: Match by label
+              if (selectedConnector.is_virtual && !b.connector_id) {
+                return b.connector_type_label === selectedConnector.type;
+              }
+              return false;
+            });
           }
 
-          // If no connector selected, show as occupied if ANY connector is taken (pre-selection info)
-          return true;
-        });
+          // Case 2: No connector selected yet
+          // Only show as occupied if ALL connectors of this station are taken for this hour
+          // (For synth/external stations, we usually only have 1 synth connector)
+          return bookingsForHour.length >= (connectors.length || 1);
+        })();
 
         if (isPast) continue;
         

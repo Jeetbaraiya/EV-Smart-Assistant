@@ -42,8 +42,8 @@ router.post('/', authenticate, [
   console.log(`[Booking] Normalizing time: ${start_time} -> ${sqlStart}`);
 
   try {
+    // 1. Verify connector status if it's a real connector
     if (!isVirtual) {
-      // 1. Verify real connector exists and is online
       const connector = await new Promise((resolve, reject) => {
         dbInstance.get(
           'SELECT id, status, price_per_kwh FROM connectors WHERE id = ? AND station_id = ?',
@@ -54,40 +54,46 @@ router.post('/', authenticate, [
 
       if (!connector) return res.status(404).json({ error: 'Connector not found at this station' });
       if (connector.status === 'offline') return res.status(400).json({ error: 'Connector is currently offline' });
+    }
 
-      let conflictQuery;
-      let conflictParams;
+    // 2. Conflict Detection (Strict Overlap Check)
+    let conflictQuery;
+    let conflictParams;
 
-      if (!isVirtual) {
-        conflictQuery = `
-          SELECT id FROM bookings
-          WHERE connector_id = ?
-          AND status IN ('pending', 'confirmed')
-          AND (start_time < ? AND end_time > ?)
-        `;
-        conflictParams = [connector_id, sqlEnd, sqlStart];
-      } else {
-        conflictQuery = `
-          SELECT id FROM bookings
-          WHERE station_id = ?
-          AND connector_id IS NULL
-          AND connector_type_label = ?
-          AND status IN ('pending', 'confirmed')
-          AND (start_time < ? AND end_time > ?)
-        `;
-        conflictParams = [station_id, virtual_connector.type, sqlEnd, sqlStart];
-      }
+    if (!isVirtual) {
+      // Check for real connector overlap
+      conflictQuery = `
+        SELECT id FROM bookings
+        WHERE connector_id = ?
+        AND status IN ('pending', 'confirmed')
+        AND (start_time < ? AND end_time > ?)
+      `;
+      conflictParams = [connector_id, sqlEnd, sqlStart];
+    } else {
+      // Check for virtual/external connector overlap (Match by type label)
+      const typeLabel = virtual_connector?.type || 'Unknown';
+      conflictQuery = `
+        SELECT id FROM bookings
+        WHERE station_id = ?
+        AND connector_id IS NULL
+        AND connector_type_label = ?
+        AND status IN ('pending', 'confirmed')
+        AND (start_time < ? AND end_time > ?)
+      `;
+      conflictParams = [station_id, typeLabel, sqlEnd, sqlStart];
+    }
 
-      const conflict = await new Promise((resolve, reject) => {
-        dbInstance.get(conflictQuery, conflictParams, (err, row) => {
-          if (err) reject(err);
-          else resolve(row);
-        });
+    const conflict = await new Promise((resolve, reject) => {
+      dbInstance.get(conflictQuery, conflictParams, (err, row) => {
+        if (err) reject(err);
+        else resolve(row);
       });
+    });
 
-      if (conflict) {
-        return res.status(409).json({ error: 'This time slot is already booked. Please choose another time or connector.' });
-      }
+    if (conflict) {
+      return res.status(409).json({ 
+        error: 'This time slot is already booked. Please choose another time or connector.' 
+      });
     }
 
     // 3. Resolve connector_type_label for storage
