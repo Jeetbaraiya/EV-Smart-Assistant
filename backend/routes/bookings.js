@@ -369,17 +369,30 @@ router.get('/station/:station_id/booked-slots', async (req, res) => {
 
   if (!date) return res.status(400).json({ error: 'Date query parameter is required' });
 
-  // Find all confirmed/pending bookings for this station on this day
+  // Find all confirmed/pending bookings for this station on this day (IST window)
+  // Date comes in as YYYY-MM-DD (IST). 
+  // IST 00:00 = UTC -5:30 (Previous Day 18:30)
+  // IST 23:59 = UTC +18:30 (Current Day 18:30)
+  const startOfDayIST = new Date(`${date}T00:00:00Z`);
+  const startWindowUTC = new Date(startOfDayIST.getTime() - (5.5 * 60 * 60 * 1000));
+  const endWindowUTC = new Date(startWindowUTC.getTime() + (24 * 60 * 60 * 1000));
+
+  const sqlStart = startWindowUTC.toISOString().slice(0, 19).replace('T', ' ');
+  const sqlEnd = endWindowUTC.toISOString().slice(0, 19).replace('T', ' ');
+
   const query = `
     SELECT start_time, end_time, connector_id, connector_type_label
     FROM bookings
     WHERE station_id = ?
     AND status IN ('pending', 'confirmed')
-    AND start_time LIKE ?
+    AND start_time >= ? AND start_time < ?
   `;
 
-  dbInstance.all(query, [station_id, `${date}%`], (err, rows) => {
-    if (err) return res.status(500).json({ error: 'Database error' });
+  dbInstance.all(query, [station_id, sqlStart, sqlEnd], (err, rows) => {
+    if (err) {
+      console.error('[booked-slots] DB Error:', err);
+      return res.status(500).json({ error: 'Database error' });
+    }
     res.json({ bookedSlots: rows || [] });
   });
 });
