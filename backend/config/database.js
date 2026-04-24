@@ -338,7 +338,43 @@ const createTables = () => new Promise((resolve) => {
   const runNext = (index) => {
     if (index >= TABLES.length) {
       console.log('[db] Schema ready.');
-      if (!toBool(process.env.DB_SEED_ADMIN)) return resolve();
+
+      // ── Startup Migration: Ensure bookings.station_id is VARCHAR ────────────────
+      // This allows booking external stations with string IDs (e.g., 'statiq_123')
+      const migrationSql = `
+        SET @fk_name = (
+          SELECT CONSTRAINT_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
+          WHERE TABLE_SCHEMA = '${database}'
+            AND TABLE_NAME = 'bookings'
+            AND COLUMN_NAME = 'station_id'
+            AND REFERENCED_TABLE_NAME IS NOT NULL
+          LIMIT 1
+        );
+        SET @drop_fk = IF(@fk_name IS NOT NULL,
+          CONCAT('ALTER TABLE bookings DROP FOREIGN KEY ', @fk_name),
+          'SELECT 1'
+        );
+        PREPARE dfk FROM @drop_fk; EXECUTE dfk; DEALLOCATE PREPARE dfk;
+
+        SET @col_type = (
+          SELECT COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS
+          WHERE TABLE_SCHEMA = '${database}'
+            AND TABLE_NAME = 'bookings'
+            AND COLUMN_NAME = 'station_id'
+        );
+        SET @alt_col = IF(@col_type LIKE 'int%',
+          'ALTER TABLE bookings MODIFY COLUMN station_id VARCHAR(255) NOT NULL',
+          'SELECT 1'
+        );
+        PREPARE aco FROM @alt_col; EXECUTE aco; DEALLOCATE PREPARE aco;
+      `;
+
+      pool.query(migrationSql, (migErr) => {
+        if (migErr) console.error('[db] Startup migration error:', migErr.message);
+        else        console.log('[db] Startup migrations applied/checked.');
+
+        if (!toBool(process.env.DB_SEED_ADMIN)) return resolve();
+        // ... proceed to admin seeding
       // Seed default admin only if none exists
       db.get("SELECT id FROM users WHERE role = 'admin' LIMIT 1", (err, row) => {
         if (err || row) return resolve();
