@@ -350,9 +350,15 @@ const createTables = () => new Promise((resolve) => {
           `, [database]);
 
           if (fkRows && fkRows.length > 0) {
-            const fkName = fkRows[0].CONSTRAINT_NAME;
-            console.log(`[db-mig] Dropping FK: ${fkName}`);
-            await pool.promise().query(`ALTER TABLE bookings DROP FOREIGN KEY ${fkName}`);
+            for (const row of fkRows) {
+              const fkName = row.CONSTRAINT_NAME;
+              console.log(`[db-mig] Dropping FK: ${fkName}`);
+              try {
+                await pool.promise().query(`ALTER TABLE bookings DROP FOREIGN KEY ${fkName}`);
+              } catch (e) {
+                console.warn(`[db-mig] Failed to drop FK ${fkName} (might be already gone):`, e.message);
+              }
+            }
           }
 
           // 2. Check if we need to convert to VARCHAR
@@ -365,6 +371,17 @@ const createTables = () => new Promise((resolve) => {
             console.log('[db-mig] Converting bookings.station_id to VARCHAR(255)');
             await pool.promise().query(`ALTER TABLE bookings MODIFY COLUMN station_id VARCHAR(255) NOT NULL`);
           }
+
+          // 3. Ensure connector_type_label exists (some older DBs might miss it)
+          const [labelCol] = await pool.promise().query(`
+            SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
+            WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'bookings' AND COLUMN_NAME = 'connector_type_label'
+          `, [database]);
+
+          if (labelCol.length === 0) {
+            console.log('[db-mig] Adding missing connector_type_label column');
+            await pool.promise().query(`ALTER TABLE bookings ADD COLUMN connector_type_label VARCHAR(100) AFTER connector_id`);
+          }
           console.log('[db-mig] Startup migrations verified.');
         } catch (mErr) {
           console.error('[db-mig] Migration skipped/failed:', mErr.message);
@@ -373,13 +390,14 @@ const createTables = () => new Promise((resolve) => {
       };
 
       // Run migration then proceed to seeding
-      runMigration().finally(() => {
+      runMigration().then(() => {
         if (!toBool(process.env.DB_SEED_ADMIN)) return resolve();
         
-        db.get("SELECT id FROM users WHERE role = 'admin' LIMIT 1", (err, row) => {
-          if (err || row) return resolve();
+        pool.query("SELECT id FROM users WHERE role = 'admin' LIMIT 1", (err, rows) => {
+          if (err || (rows && (rows.length > 0 || rows.affectedRows > 0))) return resolve();
+          
           const hash = bcrypt.hashSync('Admin@123', 10);
-          db.run(
+          pool.query(
             `INSERT INTO users (username, email, password, role, is_verified)
              VALUES ('admin', 'admin@evassistant.com', ?, 'admin', 1)`,
             [hash],
@@ -390,6 +408,9 @@ const createTables = () => new Promise((resolve) => {
             }
           );
         });
+      }).catch((e) => {
+        console.error('[db] Initialization error:', e);
+        resolve(); // resolve anyway to start app
       });
       return;
     }

@@ -113,7 +113,14 @@ router.post('/', authenticate, [
              VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
             [station_id, userId, realConnectorId, sqlStart, sqlEnd, energy_kwh, total_price, 'confirmed'],
             function(err2) {
-              if (err2) return res.status(500).json({ error: 'Booking failed. Please try again.' });
+              if (err2) {
+                console.error('[Booking Fallback Error]', err2);
+                return res.status(500).json({ 
+                  error: 'Booking failed.', 
+                  details: err2.message,
+                  code: err2.code
+                });
+              }
               res.status(201).json({
                 message: 'Booking confirmed!',
                 booking: { id: this.lastID, station_id, start_time: sqlStart, end_time: sqlEnd, status: 'confirmed' }
