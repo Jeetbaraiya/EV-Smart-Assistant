@@ -29,6 +29,14 @@ const BookingModal = ({ station, onClose, onBookingSuccess, getToken, isAuthenti
     }
   };
 
+  // Scroll lock when modal is open
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, []);
+
   useEffect(() => {
     const istDate = getIstDateStr();
     setBookingDate(istDate);
@@ -94,7 +102,6 @@ const BookingModal = ({ station, onClose, onBookingSuccess, getToken, isAuthenti
 
           // Case 2: No connector selected yet
           // Only show as occupied if ALL connectors of this station are taken for this hour
-          // (For synth/external stations, we usually only have 1 synth connector)
           return bookingsForHour.length >= (connectors.length || 1);
         })();
 
@@ -135,22 +142,23 @@ const BookingModal = ({ station, onClose, onBookingSuccess, getToken, isAuthenti
       if (res.ok && data.connectors && data.connectors.length > 0) {
         stationConnectors = data.connectors;
       } else {
-        // Synthesize a connector from station data for external/unconfigured stations
-        const synthType = station.connector_type || (station.power_kw > 50 ? 'DC Fast Charger' : 'AC Standard');
-        stationConnectors = [{
-          id: `synth-${station.id}`,
-          type: synthType,
-          power: station.power_kw || (synthType === 'DC Fast Charger' ? 50 : 22),
+        // Synthesize connectors from station data
+        // Handle comma-separated types (e.g., "CCS2, Type 2")
+        const types = (station.connector_type || (station.power_kw > 50 ? 'DC Fast Charger' : 'AC Standard'))
+          .split(',')
+          .map(t => t.trim());
+          
+        stationConnectors = types.map((t, idx) => ({
+          id: `synth-${station.id}-${idx}`,
+          type: t,
+          power: station.power_kw || (t.includes('DC') || t.includes('CCS') ? 50 : 22),
           price_per_kwh: station.price_per_kw || station.price_per_kwh || 15,
           status: 'available',
           is_virtual: true
-        }];
+        }));
       }
 
       setConnectors(stationConnectors);
-      
-      // Removed auto-selection of first connector to satisfy user request 
-      // of not showing the summary card until a port is explicitly chosen.
       setSelectedConnector(null);
     } catch (err) {
       console.error('Error fetching connectors:', err);
