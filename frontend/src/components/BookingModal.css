@@ -3,8 +3,8 @@
   position: fixed !important;
   top: 0 !important;
   left: 0 !important;
-  width: 100vw !important;
-  height: 100vh !important;
+  width: 100% !important;
+  height: 100% !important;
   background: rgba(15, 23, 42, 0.75) !important;
   backdrop-filter: blur(12px) !important;
   -webkit-backdrop-filter: blur(12px) !important;
@@ -15,6 +15,16 @@
   animation: fadeIn 0.25s ease;
   transform: none !important;
   will-change: auto !important;
+  /* Prevent touch events from reaching background */
+  touch-action: none;
+}
+
+/* Force body to stop scrolling when modal is open */
+body.modal-open {
+  overflow: hidden !important;
+  height: 100vh !important;
+  width: 100vw !important;
+  position: fixed !important;
 }
 
 .booking-modal-overlay *,
