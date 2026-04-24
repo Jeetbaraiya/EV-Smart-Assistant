@@ -83,7 +83,7 @@ CREATE TABLE IF NOT EXISTS vehicles (
 -- user_deleted / owner_deleted: soft-delete flags for list views
 CREATE TABLE IF NOT EXISTS bookings (
   id                   INT AUTO_INCREMENT PRIMARY KEY,
-  station_id           INT         NOT NULL,
+  station_id           VARCHAR(255) NOT NULL,
   user_id              INT,
   connector_id         INT,
   connector_type_label VARCHAR(100),
@@ -95,7 +95,6 @@ CREATE TABLE IF NOT EXISTS bookings (
   user_deleted         TINYINT(1)  DEFAULT 0,
   owner_deleted        TINYINT(1)  DEFAULT 0,
   created_at           DATETIME    DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (station_id) REFERENCES charging_stations(id),
   FOREIGN KEY (user_id)    REFERENCES users(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

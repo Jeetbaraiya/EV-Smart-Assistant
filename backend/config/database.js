@@ -245,7 +245,7 @@ const TABLES = [
     name: 'bookings',
     sql: `CREATE TABLE IF NOT EXISTS bookings (
       id                   INT AUTO_INCREMENT PRIMARY KEY,
-      station_id           INT         NOT NULL,
+      station_id           VARCHAR(255) NOT NULL,
       user_id              INT,
       connector_id         INT,
       connector_type_label VARCHAR(100),
@@ -257,7 +257,6 @@ const TABLES = [
       user_deleted         TINYINT(1)  DEFAULT 0,
       owner_deleted        TINYINT(1)  DEFAULT 0,
       created_at           DATETIME    DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (station_id) REFERENCES charging_stations(id),
       FOREIGN KEY (user_id)    REFERENCES users(id)
     )`
   },

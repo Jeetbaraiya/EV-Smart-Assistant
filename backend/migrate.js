@@ -34,6 +34,40 @@ const migrations = `
     FOREIGN KEY (station_id) REFERENCES charging_stations(id) ON DELETE CASCADE
   );
 
+  -- Modify station_id to VARCHAR(255) to support external/india-network stations
+  SET @col_type = (
+    SELECT COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = '${dbName}'
+      AND TABLE_NAME   = 'bookings'
+      AND COLUMN_NAME  = 'station_id'
+  );
+  
+  -- 1. Drop foreign key if it exists (to allow type change)
+  SET @fk_name = (
+    SELECT CONSTRAINT_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
+    WHERE TABLE_SCHEMA = '${dbName}'
+      AND TABLE_NAME = 'bookings'
+      AND COLUMN_NAME = 'station_id'
+      AND REFERENCED_TABLE_NAME IS NOT NULL
+    LIMIT 1
+  );
+  SET @drop_fk = IF(@fk_name IS NOT NULL,
+    CONCAT('ALTER TABLE bookings DROP FOREIGN KEY ', @fk_name),
+    'SELECT 1 /* No FK on station_id */'
+  );
+  PREPARE drop_fk_stmt FROM @drop_fk;
+  EXECUTE drop_fk_stmt;
+  DEALLOCATE PREPARE drop_fk_stmt;
+
+  -- 2. Change column type
+  SET @alter_stmt = IF(@col_type LIKE 'int%',
+    'ALTER TABLE bookings MODIFY COLUMN station_id VARCHAR(255) NOT NULL',
+    'SELECT 1 /* station_id is already VARCHAR or non-int */'
+  );
+  PREPARE alter_stmt FROM @alter_stmt;
+  EXECUTE alter_stmt;
+  DEALLOCATE PREPARE alter_stmt;
+
   -- Add connector_id column to bookings if it doesn't exist yet
   SET @col_exists = (
     SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
@@ -48,6 +82,7 @@ const migrations = `
   PREPARE migration_stmt FROM @stmt;
   EXECUTE migration_stmt;
   DEALLOCATE PREPARE migration_stmt;
+
 `;
 
 connection.connect((err) => {

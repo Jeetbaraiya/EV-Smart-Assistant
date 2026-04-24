@@ -121,12 +121,13 @@ const BookingModal = ({ station, onClose, onBookingSuccess, getToken, isAuthenti
       let stationConnectors = [];
       if (res.ok && data.connectors && data.connectors.length > 0) {
         stationConnectors = data.connectors;
-      } else if (station.connector_type || station.power_kw) {
+      } else {
         // Synthesize a connector from station data for external/unconfigured stations
+        const synthType = station.connector_type || (station.power_kw > 50 ? 'DC Fast Charger' : 'AC Standard');
         stationConnectors = [{
           id: `synth-${station.id}`,
-          type: station.connector_type || 'Unknown',
-          power: station.power_kw || 0,
+          type: synthType,
+          power: station.power_kw || (synthType === 'DC Fast Charger' ? 50 : 22),
           price_per_kwh: station.price_per_kw || station.price_per_kwh || 15,
           status: 'available',
           is_virtual: true

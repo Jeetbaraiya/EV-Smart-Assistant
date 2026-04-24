@@ -276,13 +276,13 @@
 }
 
 .v-table thead th {
-  padding: 1.2rem 1.5rem;
+  padding: 1.25rem 1.5rem;
   text-align: left;
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   font-weight: 850;
   color: #94a3b8;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.08em;
   background: #f8fafc;
   border-bottom: 1.5px solid #edf2f7;
 }
@@ -312,15 +312,19 @@
 }
 
 .v-table tbody tr.v-row-active td:first-child {
-  font-weight: 900;
+  font-weight: 800;
   position: relative;
+  padding-left: 2.2rem; /* Make room for the star */
 }
 
 .v-table tbody tr.v-row-active td:first-child::before {
   content: '★';
   position: absolute;
-  left: 0.4rem;
+  left: 0.8rem;
+  top: 50%;
+  transform: translateY(-50%);
   color: #6366f1;
+  font-size: 1.1rem;
 }
 
 /* ═══════════════════════════════════════════════
