@@ -16,7 +16,11 @@ router.get('/', authenticate, (req, res) => {
         console.error('Error fetching vehicles:', err);
         return res.status(500).json({ error: 'Database error' });
       }
-      res.json(rows || []);
+      const formattedRows = rows.map(row => ({
+        ...row,
+        connector_types: row.connector_types ? JSON.parse(row.connector_types) : []
+      }));
+      res.json(formattedRows || []);
     }
   );
 });
@@ -25,19 +29,20 @@ router.get('/', authenticate, (req, res) => {
 router.post('/', authenticate, [
   body('name').trim().notEmpty().withMessage('Vehicle name is required'),
   body('battery_capacity').isFloat({ min: 1, max: 200 }).withMessage('Battery capacity must be between 1 and 200 kWh'),
-  body('efficiency').isFloat({ min: 1 }).withMessage('Efficiency must be greater than 0')
+  body('efficiency').isFloat({ min: 1 }).withMessage('Efficiency must be greater than 0'),
+  body('connector_types').isArray({ min: 1 }).withMessage('At least one connector type must be selected')
 ], (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
   }
 
-  const { name, battery_capacity, efficiency } = req.body;
+  const { name, battery_capacity, efficiency, connector_types } = req.body;
   const dbInstance = db.getDb();
 
   dbInstance.run(
-    'INSERT INTO vehicles (user_id, name, battery_capacity, efficiency) VALUES (?, ?, ?, ?)',
-    [req.user.id, name, battery_capacity, efficiency],
+    'INSERT INTO vehicles (user_id, name, battery_capacity, efficiency, connector_types) VALUES (?, ?, ?, ?, ?)',
+    [req.user.id, name, battery_capacity, efficiency, JSON.stringify(connector_types)],
     function(err) {
       if (err) {
         console.error('Error adding vehicle:', err);
@@ -48,7 +53,8 @@ router.post('/', authenticate, [
         user_id: req.user.id,
         name,
         battery_capacity,
-        efficiency
+        efficiency,
+        connector_types
       });
     }
   );
@@ -93,7 +99,8 @@ router.delete('/:id', authenticate, (req, res) => {
 router.put('/:id', authenticate, [
   body('name').trim().notEmpty().withMessage('Vehicle name is required'),
   body('battery_capacity').isFloat({ min: 1, max: 200 }).withMessage('Battery capacity must be between 1 and 200 kWh'),
-  body('efficiency').isFloat({ min: 1 }).withMessage('Efficiency must be greater than 0')
+  body('efficiency').isFloat({ min: 1 }).withMessage('Efficiency must be greater than 0'),
+  body('connector_types').isArray({ min: 1 }).withMessage('At least one connector type must be selected')
 ], (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -113,11 +120,11 @@ router.put('/:id', authenticate, [
       if (!vehicle) return res.status(404).json({ error: 'Vehicle not found' });
 
       dbInstance.run(
-        'UPDATE vehicles SET name = ?, battery_capacity = ?, efficiency = ? WHERE id = ?',
-        [name, battery_capacity, efficiency, vehicleId],
+        'UPDATE vehicles SET name = ?, battery_capacity = ?, efficiency = ?, connector_types = ? WHERE id = ?',
+        [name, battery_capacity, efficiency, JSON.stringify(req.body.connector_types), vehicleId],
         function(err) {
           if (err) return res.status(500).json({ error: 'Database error' });
-          res.json({ id: parseInt(vehicleId), name, battery_capacity, efficiency });
+          res.json({ id: parseInt(vehicleId), name, battery_capacity, efficiency, connector_types: req.body.connector_types });
         }
       );
     }

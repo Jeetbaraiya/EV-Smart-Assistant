@@ -282,6 +282,7 @@ const TABLES = [
       name             VARCHAR(255) NOT NULL,
       battery_capacity FLOAT        NOT NULL,
       efficiency       FLOAT        NOT NULL,
+      connector_types  TEXT,
       created_at       DATETIME     DEFAULT CURRENT_TIMESTAMP,
       updated_at       DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
@@ -387,6 +388,17 @@ const createTables = () => new Promise((resolve) => {
           if (labelCol.length === 0) {
             console.log('[db-mig] Adding missing connector_type_label column');
             await pool.promise().query(`ALTER TABLE bookings ADD COLUMN connector_type_label VARCHAR(100) AFTER connector_id`);
+          }
+
+          // 4. Ensure connector_types exists in vehicles
+          const [vehCol] = await pool.promise().query(`
+            SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
+            WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'vehicles' AND COLUMN_NAME = 'connector_types'
+          `, [database]);
+
+          if (vehCol.length === 0) {
+            console.log('[db-mig] Adding missing connector_types column to vehicles');
+            await pool.promise().query(`ALTER TABLE vehicles ADD COLUMN connector_types TEXT AFTER efficiency`);
           }
           console.log('[db-mig] Startup migrations verified.');
         } catch (mErr) {

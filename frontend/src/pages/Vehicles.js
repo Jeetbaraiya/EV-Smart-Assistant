@@ -14,7 +14,7 @@ const Vehicles = () => {
   const [loading, setLoading] = useState(true);
   const [fetching, setFetching] = useState(false);
 
-  const [form, setForm] = useState({ name: '', battery: 40, efficiency: 15 });
+  const [form, setForm] = useState({ name: '', battery: 40, efficiency: 15, connector_types: [] });
   const [selectedId, setSelectedId] = useState(null);
   const [editingId, setEditingId] = useState(null);
   const [batteryPct, setBatteryPct] = useState(55);
@@ -48,7 +48,33 @@ const Vehicles = () => {
     }
   };
 
-  const handleFormChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  const handleFormChange = (e) => {
+    const { name, value } = e.target;
+    let newForm = { ...form, [name]: value };
+
+    // Smart Suggestions Logic
+    if (name === 'name') {
+      const lowerName = value.toLowerCase();
+      const commonEVs = ['nexon', 'mg zs', 'tiago', 'tigor', 'kona', 'ioniq', 'ev6', 'atto', 'e6', 'punch', 'xuv400'];
+      
+      if (commonEVs.some(ev => lowerName.includes(ev))) {
+        // Auto-suggest CCS2 and Type 2 for these common Indian EVs
+        if (!newForm.connector_types.includes('CCS2')) {
+          newForm.connector_types = ['CCS2', 'Type 2 (AC)'];
+        }
+      }
+    }
+    setForm(newForm);
+  };
+
+  const handleConnectorToggle = (type) => {
+    const current = form.connector_types || [];
+    if (current.includes(type)) {
+      setForm({ ...form, connector_types: current.filter(t => t !== type) });
+    } else {
+      setForm({ ...form, connector_types: [...current, type] });
+    }
+  };
 
   const handleSave = async (e) => {
     e.preventDefault();
@@ -56,6 +82,7 @@ const Vehicles = () => {
     if (!form.name.trim()) { setFormError('Vehicle name is required'); return; }
     if (form.battery <= 0 || form.battery > 200) { setFormError('Battery must be between 1–200 kWh'); return; }
     if (form.efficiency <= 0) { setFormError('Efficiency must be > 0'); return; }
+    if (!form.connector_types || form.connector_types.length === 0) { setFormError('Select at least one connector type'); return; }
 
     setFetching(true);
     try {
@@ -72,7 +99,8 @@ const Vehicles = () => {
         body: JSON.stringify({
           name: form.name.trim(),
           battery_capacity: parseFloat(form.battery),
-          efficiency: parseFloat(form.efficiency)
+          efficiency: parseFloat(form.efficiency),
+          connector_types: form.connector_types
         })
       });
 
@@ -90,7 +118,7 @@ const Vehicles = () => {
           setVehicles([normalized, ...vehicles]);
           setSelectedId(normalized.id);
         }
-        setForm({ name: '', battery: 40, efficiency: 15 });
+        setForm({ name: '', battery: 40, efficiency: 15, connector_types: [] });
       } else {
         const errorData = await res.json();
         setFormError(errorData.error || 'Failed to save vehicle');
@@ -107,7 +135,8 @@ const Vehicles = () => {
     setForm({
       name: vehicle.name,
       battery: vehicle.battery || vehicle.battery_capacity,
-      efficiency: vehicle.efficiency
+      efficiency: vehicle.efficiency,
+      connector_types: vehicle.connector_types || []
     });
     setFormError('');
     // Scroll to form
@@ -179,6 +208,24 @@ const Vehicles = () => {
                   <label>Efficiency (kWh/100km)</label>
                   <input type="number" name="efficiency" value={form.efficiency} onChange={handleFormChange}
                     min="1" max="100" step="0.1" className="v-input" />
+                </div>
+              </div>
+
+              <div className="v-form-group" style={{ marginTop: '1.25rem' }}>
+                <label>Supported Connector Types ⚡</label>
+                <div className="v-connector-grid">
+                  {['Type 2 (AC)', 'CCS2', 'CHAdeMO', 'GB/T'].map(type => (
+                    <label key={type} className={`v-connector-chip ${form.connector_types.includes(type) ? 'active' : ''}`}>
+                      <input 
+                        type="checkbox" 
+                        hidden
+                        checked={form.connector_types.includes(type)} 
+                        onChange={() => handleConnectorToggle(type)}
+                      />
+                      <span className="chip-icon">{type === 'Type 2 (AC)' ? '🔌' : '⚡'}</span>
+                      <span>{type}</span>
+                    </label>
+                  ))}
                 </div>
               </div>
 
@@ -266,6 +313,7 @@ const Vehicles = () => {
                     <th>Vehicle Model</th>
                     <th>Capacity (kWh)</th>
                     <th>Efficiency (kWh/100km)</th>
+                    <th>Connectors</th>
                     <th style={{ textAlign: 'center' }}>Management</th>
                   </tr>
                 </thead>
@@ -276,6 +324,13 @@ const Vehicles = () => {
                       <td>{v.name}</td>
                       <td>{v.battery || v.battery_capacity}</td>
                       <td>{v.efficiency}</td>
+                      <td>
+                        <div className="v-table-connectors">
+                          {v.connector_types && v.connector_types.map(c => (
+                            <span key={c} className="v-mini-badge">{c}</span>
+                          ))}
+                        </div>
+                      </td>
                       <td style={{ textAlign: 'center' }}>
                         <button className="v-edit-btn"
                           onClick={(e) => { e.stopPropagation(); handleEdit(v); }}

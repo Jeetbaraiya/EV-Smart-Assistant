@@ -556,3 +556,85 @@
   }
 }
 
+/* ── Connector Types Styling ── */
+.v-connector-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.v-connector-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.75rem 1rem;
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+}
+
+.v-connector-chip:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  transform: translateY(-2px);
+}
+
+.v-connector-chip.active {
+  background: rgba(99, 102, 241, 0.1);
+  border-color: #6366f1;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+}
+
+.v-connector-chip.active span {
+  color: #4f46e5;
+  font-weight: 700;
+}
+
+.chip-icon {
+  font-size: 1.1rem;
+  opacity: 0.8;
+}
+
+.v-connector-chip.active .chip-icon {
+  opacity: 1;
+}
+
+.v-table-connectors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.v-mini-badge {
+  background: #f1f5f9;
+  color: #64748b;
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: 1px solid #e2e8f0;
+}
+
+.v-row-active .v-mini-badge {
+  background: rgba(99, 102, 241, 0.1);
+  color: #6366f1;
+  border-color: rgba(99, 102, 241, 0.2);
+}
+
+@media (max-width: 480px) {
+  .v-connector-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .v-connector-chip {
+    padding: 0.6rem 0.75rem;
+    font-size: 0.85rem;
+  }
+}
+
