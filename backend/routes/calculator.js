@@ -519,13 +519,13 @@ router.post('/optimize-route', [
       }
       return { ...station, proximityKm: minProximity };
     }).filter(Boolean).filter(s => {
-      if (s.proximityKm > 30) return false; // Increased corridor search to 30km for long routes
+      if (s.proximityKm > 40) return false; // Further increased corridor search to 40km for massive routes
       if (filters.availableOnly && String(s.status || 'available') !== 'available') return false;
       if (filters.fastChargerOnly && Number(s.power_kw || 0) < 50) return false;
       if (filters.minPowerKw != null && Number(s.power_kw || 0) < parseFloat(filters.minPowerKw)) return false;
       return true;
     }).sort((a, b) => a.proximityKm - b.proximityKm)
-    .slice(0, 150); // Show more stations on long routes
+    .slice(0, 200); // Return a very large sample for massive routes
 
     // WARNING: No stations found in corridor
     if (stationsWithProximity.length === 0) {
@@ -597,7 +597,7 @@ router.post('/optimize-route', [
         optimized: false, 
         error: 'No feasible route found. Try increasing maxStationsToConsider.', 
         totalStops: 0, stops: [], legs: [],
-        potentialStations: stationsWithProximity.slice(0, 40) 
+        potentialStations: stationsWithProximity.slice(0, 150) 
       });
     }
 
@@ -676,8 +676,12 @@ router.post('/multi-stop-plan', [
       let segmentResult = await segmentResponse.json();
 
       if (!segmentResult?.optimized) {
-         // If a leg fails with the provided battery, we strictly mark it as unplanned.
-         // This prevents "faking" 100% battery at the start of a leg.
+         // Even on failure, collect stations from other legs if possible
+         const allPotentials = [
+           ...(segmentResult.potentialStations || []),
+           ...(segmentResult.allStationsInCorridor || [])
+         ];
+         
          return res.json({ 
             planned: false, 
             error: segmentResult.warning || segmentResult.error || `No feasible route for leg ${i + 1}`,
@@ -686,8 +690,7 @@ router.post('/multi-stop-plan', [
             legs: plans,
             totalDistanceKm: Math.round(fallbackTotalDistanceKm * 10) / 10,
             totalTimeMinutes: Math.round(fallbackTotalTimeMinutes * 10) / 10,
-            // Include potential stations to show on map for manual planning
-            potentialStations: segmentResult.potentialStations || []
+            potentialStations: Array.from(new Map(allPotentials.map(s => [s.id, s])).values()).slice(0, 200)
          });
       }
 

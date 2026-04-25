@@ -407,24 +407,6 @@ const MultiStopPlanner = () => {
                    )}
                 </div>
               </div>
-
-              {/* FULL WIDTH OPTIMIZE BUTTON AT BOTTOM */}
-              <div style={{ marginTop: '2rem' }}>
-                <button 
-                  className="calculate-button" 
-                  onClick={() => handlePlanMultiStop('min_time')} 
-                  disabled={plannerLoading}
-                  style={{ 
-                    width: '100%', 
-                    padding: '1.25rem', 
-                    fontSize: '1.1rem', 
-                    background: 'linear-gradient(135deg, #3b82f6, #6366f1)',
-                    boxShadow: '0 10px 25px rgba(99, 102, 241, 0.3)'
-                  }}
-                >
-                  {plannerLoading ? '⏳ Optimizing...' : '🚀 Get Optimized Stop Plan'}
-                </button>
-              </div>
             </div>
           )}
         </div>
