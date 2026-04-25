@@ -372,7 +372,9 @@ const RouteMap = ({ originCoords, destCoords, distance, stations = [], useStatio
                     >
                         <Popup>
                             <div style={{ color: '#111' }}>
-                                <h4 style={{ margin: '0 0 5px 0' }}>⚡ Stop {idx + 1}: {station.name}</h4>
+                                <h4 style={{ margin: '0 0 5px 0' }}>
+                                    {station.isPlannedStop ? '⭐ Recommended Stop' : `⚡ Stop ${idx + 1}`}: {station.name}
+                                </h4>
                                 <p style={{ margin: 0, fontSize: '0.85rem' }}>
                                     {station.connector_type} • {station.power_kw}kW
                                 </p>

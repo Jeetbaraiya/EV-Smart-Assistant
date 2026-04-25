@@ -348,16 +348,35 @@ const MultiStopPlanner = () => {
                              if (failure) {
                                return (
                                  <>
-                                   <p style={{ color: '#475569', fontSize: '0.9rem', margin: '0 0 1rem 0', lineHeight: '1.5' }}>
-                                     You can travel only <strong>~{failure.rangeKm} km</strong> with current battery, 
-                                     but the next required segment is <strong>~{failure.segmentDistance} km</strong>.
-                                   </p>
-                                   <div style={{ background: 'white', padding: '0.8rem', borderRadius: '8px', border: '1px dashed #fbbf24' }}>
-                                     <p style={{ color: '#1e293b', fontSize: '0.85rem', fontWeight: 600, margin: '0 0 4px 0' }}>⚡ Suggested Action:</p>
-                                     <p style={{ color: '#64748b', fontSize: '0.85rem', margin: 0 }}>
-                                       Add a charging stop between <strong>{failure.from}</strong> → <strong>{failure.to}</strong> to continue safely.
-                                     </p>
+                                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '15px', marginBottom: '1rem' }}>
+                                      <div style={{ padding: '4px 12px', background: 'rgba(239, 68, 68, 0.1)', color: '#dc2626', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 600 }}>
+                                        🔋 Range: ~{failure.rangeKm} km
+                                      </div>
+                                      <div style={{ padding: '4px 12px', background: 'rgba(79, 70, 229, 0.1)', color: '#4f46e5', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 600 }}>
+                                        📍 Next segment: {failure.from} → {failure.to} (~{failure.segmentDistance} km)
+                                      </div>
                                    </div>
+
+                                   {multiStopPlan.recommendedStation && (
+                                     <div style={{ background: '#fffbeb', padding: '1rem', borderRadius: '12px', border: '1px solid #fef3c7', marginBottom: '1rem' }}>
+                                       <p style={{ color: '#b45309', fontSize: '0.9rem', fontWeight: 700, margin: '0 0 5px 0' }}>⚡ Recommended Stop:</p>
+                                       <p style={{ color: '#1e293b', fontSize: '0.95rem', margin: 0 }}>
+                                         <strong>{multiStopPlan.recommendedStation.name}</strong> (~{multiStopPlan.recommendedStation.distanceFromStart} km from {failure.from})
+                                       </p>
+                                       <p style={{ color: '#64748b', fontSize: '0.85rem', marginTop: '8px' }}>
+                                         Continue your journey after charging here.
+                                       </p>
+                                     </div>
+                                   )}
+                                   
+                                   {!multiStopPlan.recommendedStation && (
+                                     <div style={{ background: 'white', padding: '0.8rem', borderRadius: '8px', border: '1px dashed #fbbf24' }}>
+                                       <p style={{ color: '#1e293b', fontSize: '0.85rem', fontWeight: 600, margin: '0 0 4px 0' }}>⚡ Suggested Action:</p>
+                                       <p style={{ color: '#64748b', fontSize: '0.85rem', margin: 0 }}>
+                                         Add a charging stop between <strong>{failure.from}</strong> → <strong>{failure.to}</strong> to continue safely.
+                                       </p>
+                                     </div>
+                                   )}
                                  </>
                                );
                              }
@@ -373,15 +392,45 @@ const MultiStopPlanner = () => {
                    )}
 
                    <ul style={{ listStyleType: 'none', paddingLeft: 0, marginTop: '0.8rem', fontSize: '0.9rem', color: '#475569' }}>
-                     {!multiStopPlan.planned && multiStopPlan.points && multiStopPlan.points.map((pt, idx) => (
-                       <li key={`point-${idx}`} style={{ padding: '0.8rem 0', borderBottom: '1px solid #f1f5f9' }}>
-                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                           <span>{idx === 0 ? '🟢' : idx === multiStopPlan.points.length - 1 ? '🏁' : '📍'}</span>
-                           <strong>{idx === 0 ? 'Start:' : idx === multiStopPlan.points.length - 1 ? 'Destination:' : `Waypoint ${idx}:`}</strong>
-                           <span>{pt.label || `${pt.lat.toFixed(2)}, ${pt.lon.toFixed(2)}`}</span>
-                         </div>
-                       </li>
-                     ))}
+                     {!multiStopPlan.planned && multiStopPlan.allLegs && multiStopPlan.allLegs.map((leg, idx) => {
+                       const isFailedLeg = multiStopPlan.legIndex === leg.index;
+                       const recommended = isFailedLeg ? multiStopPlan.recommendedStation : null;
+
+                       return (
+                        <React.Fragment key={`leg-fail-${idx}`}>
+                          {idx === 0 && (
+                            <li style={{ padding: '0.8rem 0', borderBottom: '1px solid #f1f5f9' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <span>🟢</span><strong>Start:</strong> {leg.from.label || 'Origin'}
+                              </div>
+                            </li>
+                          )}
+                          
+                          {recommended && (
+                            <li style={{ padding: '1rem', background: 'rgba(245, 158, 11, 0.08)', border: '1.5px dashed #f59e0b', borderRadius: '12px', margin: '0.5rem 0' }}>
+                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                 <span style={{ color: '#b45309', fontWeight: 700 }}>
+                                   ⚡ Recommended Charging Stop:
+                                 </span>
+                                 <span className="badge badge-yellow" style={{ background: '#f59e0b', color: 'white' }}>~{recommended.distanceFromStart} km from {leg.from.label}</span>
+                               </div>
+                               <div style={{ marginTop: '5px', fontSize: '1rem', fontWeight: 600, color: '#1e293b' }}>
+                                 {recommended.name}
+                               </div>
+                               <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: '#64748b' }}>{recommended.city || 'Highway / Nearby City'}</p>
+                            </li>
+                          )}
+
+                          <li style={{ padding: '0.8rem 0', borderBottom: '1px solid #f1f5f9', opacity: leg.index > multiStopPlan.legIndex ? 0.5 : 1 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <span>{idx === multiStopPlan.allLegs.length - 1 ? '🏁' : '📍'}</span>
+                              <strong>{idx === multiStopPlan.allLegs.length - 1 ? 'Final Destination:' : `Waypoint ${idx + 1}:`}</strong>
+                              <span>{leg.to.label}</span>
+                            </div>
+                          </li>
+                        </React.Fragment>
+                       );
+                     })}
 
                      {multiStopPlan.planned && multiStopPlan.legs.map((leg, legIdx) => (
                        <React.Fragment key={legIdx}>
@@ -428,7 +477,10 @@ const MultiStopPlanner = () => {
                                 ...st,
                                 isPlannedStop: multiStopPlan.legs.some(l => l.stops?.some(stop => stop.id === st.id))
                               }))
-                            : (multiStopPlan.potentialStations || []).map(st => ({ ...st, isPlannedStop: false }))}
+                            : (multiStopPlan.potentialStations || []).map(st => ({ 
+                                ...st, 
+                                isPlannedStop: st.id === multiStopPlan.recommendedStation?.id 
+                              }))}
                           useStationsAsWaypoints={multiStopPlan.planned}
                           pathCoordinates={getMultiStopPath()}
                           waypoints={multiStopPlan.points || []}

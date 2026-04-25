@@ -616,11 +616,32 @@ router.post('/optimize-route', [
     }
 
     if (dist[destinationIndex] === Number.POSITIVE_INFINITY) {
+      // Find farthest reachable station for suggestion
+      let recommendedStation = null;
+      let maxDistFromStart = -1;
+      
+      stationsWithProximity.forEach(st => {
+        const sLat = parseFloat(st.latitude);
+        const sLon = parseFloat(st.longitude);
+        const dFromStart = haversineKm(originLat, originLon, sLat, sLon);
+        
+        // Pick the station that gets us the farthest while remaining reachable
+        if (dFromStart <= initialRangeKm && dFromStart > maxDistFromStart) {
+          maxDistFromStart = dFromStart;
+          recommendedStation = {
+            id: st.id, name: st.name, latitude: st.latitude, longitude: st.longitude,
+            power_kw: st.power_kw, status: st.status, source: st.source,
+            distanceFromStart: Math.round(dFromStart * 10) / 10
+          };
+        }
+      });
+
       return res.json({ 
         optimized: false, 
-        error: 'No feasible route found. Try increasing maxStationsToConsider.', 
+        error: 'No complete route found with current range.', 
         totalStops: 0, stops: [], legs: [],
-        potentialStations: stationsWithProximity.slice(0, 40) 
+        potentialStations: stationsWithProximity.slice(0, 40),
+        recommendedStation
       });
     }
 
