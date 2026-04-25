@@ -202,7 +202,7 @@ const Vehicles = () => {
         <div className="vehicles-grid">
 
           {/* ── Add/Edit Vehicle ──────────────────────── */}
-          <div className="v-card">
+          <div className={`v-card ${dropdownOpen ? 'v-card-top' : ''}`}>
             <h3 className="v-card-title">{editingId ? '📝 Edit Vehicle Spec' : '➕ Register New Vehicle'}</h3>
             {formError && <div className="v-error">⚠️ {formError}</div>}
             <form onSubmit={handleSave}>
