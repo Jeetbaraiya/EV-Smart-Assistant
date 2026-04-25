@@ -481,14 +481,21 @@ router.post('/optimize-route', [
       status: s.availability === 'available' ? 'available' : 'offline', slots_total: 4, slots_available: 2, expected_wait_minutes: 0, source: 'india_api'
     }));
 
-    // Fetch road-accurate geometry for proximity
-    const polyline = await (async () => {
+    // Fetch road-accurate geometry and metrics
+    const routeData = await (async () => {
       try {
         const url = `https://router.project-osrm.org/route/v1/driving/${originLon},${originLat};${destLon},${destLat}?overview=full&geometries=geojson`;
         const r = await axios.get(url, { headers: { 'User-Agent': 'EV-Assistant-Backend' } });
-        return r.data?.routes?.[0]?.geometry?.coordinates?.map(c => [c[1], c[0]]) || null;
+        return {
+          polyline: r.data?.routes?.[0]?.geometry?.coordinates?.map(c => [c[1], c[0]]) || null,
+          distanceKm: (r.data?.routes?.[0]?.distance || 0) / 1000,
+          durationMin: (r.data?.routes?.[0]?.duration || 0) / 60
+        };
       } catch { return null; }
     })();
+
+    const polyline = routeData?.polyline;
+    const totalDistanceKm = routeData?.distanceKm || 0;
 
     // 1. Get BBox from polyline to optimize search
     const getBBox = (path, padding = 0.1) => {
@@ -580,12 +587,13 @@ router.post('/optimize-route', [
       return haversineKm(px, py, x1 + t*(x2-x1), y1 + t*(y2-y1));
     };
 
-    const projectToPolyline = (lat, lon, polyline) => {
+    const projectToPolyline = (lat, lon, routePolyline) => {
+      if (!routePolyline) return 0;
       let minDist = Infinity;
       let totalDist = 0;
       let bestDistAlong = 0;
-      for (let i = 0; i < polyline.length - 1; i++) {
-        const p1 = polyline[i], p2 = polyline[i+1];
+      for (let i = 0; i < routePolyline.length - 1; i++) {
+        const p1 = routePolyline[i], p2 = routePolyline[i+1];
         const segLen = haversineKm(p1[0], p1[1], p2[0], p2[1]);
         const d = distToSegment(lat, lon, p1[0], p1[1], p2[0], p2[1]);
         if (d < minDist) { minDist = d; bestDistAlong = totalDist + (segLen / 2); }
@@ -602,9 +610,9 @@ router.post('/optimize-route', [
         station: s, 
         lat: parseFloat(s.latitude), 
         lon: parseFloat(s.longitude),
-        roadPos: projectToPolyline(parseFloat(s.latitude), parseFloat(s.longitude), decodedPolyline)
+        roadPos: projectToPolyline(parseFloat(s.latitude), parseFloat(s.longitude), polyline)
       })),
-      { key: 'destination', type: 'destination', lat: destLat, lon: destLon, roadPos: totalRoadDistance }
+      { key: 'destination', type: 'destination', lat: destLat, lon: destLon, roadPos: totalDistanceKm }
     ];
 
     const originIndex = 0;
