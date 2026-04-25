@@ -215,11 +215,11 @@ const Vehicles = () => {
                 <label>Supported Connector Types ⚡</label>
                 <div className="v-connector-grid">
                   {['Type 2 (AC)', 'CCS2', 'CHAdeMO', 'GB/T'].map(type => (
-                    <label key={type} className={`v-connector-chip ${form.connector_types.includes(type) ? 'active' : ''}`}>
+                    <label key={type} className={`v-connector-chip ${(form.connector_types || []).includes(type) ? 'active' : ''}`}>
                       <input 
                         type="checkbox" 
                         hidden
-                        checked={form.connector_types.includes(type)} 
+                        checked={(form.connector_types || []).includes(type)} 
                         onChange={() => handleConnectorToggle(type)}
                       />
                       <span className="chip-icon">{type === 'Type 2 (AC)' ? '🔌' : '⚡'}</span>
