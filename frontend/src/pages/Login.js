@@ -40,7 +40,14 @@ const Login = () => {
     setLoading(true);
     const result = await login(email, password);
     if (result.success) {
-      navigate('/');
+      // Redirect admin/owner to their dashboard
+      if (result.user?.role === 'admin') {
+        navigate('/admin/dashboard');
+      } else if (result.user?.role === 'owner') {
+        navigate('/owner/dashboard');
+      } else {
+        navigate('/');
+      }
     } else {
       setError(result.error);
     }
