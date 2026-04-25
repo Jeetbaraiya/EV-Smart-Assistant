@@ -280,7 +280,7 @@ const MultiStopPlanner = () => {
                     <p className="recommendation">
                       {multiStopPlan.planned 
                         ? 'Your full journey has been mapped out with charging stops.' 
-                        : (multiStopPlan.error || 'A portion of your route is not reachable. Showing potential stations along the way.')}
+                        : ''}
                     </p>
                   </div>
                 </div>
