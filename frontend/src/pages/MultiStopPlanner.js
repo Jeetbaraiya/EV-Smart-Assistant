@@ -165,6 +165,31 @@ const MultiStopPlanner = () => {
     return path;
   };
 
+  const calculateFailurePoint = () => {
+    if (!multiStopPlan || multiStopPlan.planned || !multiStopPlan.allLegs) return null;
+    
+    const capacity = parseFloat(formData.batteryCapacity);
+    const efficiency = parseFloat(formData.efficiency);
+    const startBatt = parseFloat(formData.batteryPercentage);
+    
+    // Initial range
+    let currentRange = (startBatt / 100) * capacity / (efficiency / 100);
+    
+    for (const leg of multiStopPlan.allLegs) {
+      if (leg.distanceKm > currentRange) {
+        return {
+          rangeKm: Math.round(currentRange),
+          segmentDistance: Math.round(leg.distanceKm),
+          from: leg.from.label || 'the previous point',
+          to: leg.to.label || 'the next destination'
+        };
+      }
+      currentRange -= leg.distanceKm;
+      if (currentRange < 0) currentRange = 0;
+    }
+    return null;
+  };
+
   return (
     <div className="calculator-page">
       <div className={`calculator-container${multiStopPlan ? ' has-results' : ''}`}>
@@ -313,13 +338,37 @@ const MultiStopPlanner = () => {
                    <h4>📍 {multiStopPlan.planned ? 'Journey Points & Stops' : 'Journey Breakdown'}</h4>
                    
                    {!multiStopPlan.planned && (
-                     <div style={{ marginBottom: '1.5rem', background: '#fff7ed', padding: '1rem', borderRadius: '12px', border: '1px solid #ffedd5' }}>
-                       <p style={{ color: '#9a3412', fontSize: '0.9rem', margin: 0, fontWeight: 600 }}>
-                         🔋 This plan is incomplete starting from <strong>{multiStopPlan.error?.includes('leg') ? `Step ${multiStopPlan.legIndex}` : 'the start'}</strong>.
-                       </p>
-                       <p style={{ color: '#c2410c', fontSize: '0.85rem', marginTop: '0.5rem' }}>
-                         Check the potential charging points nearby on the map to manually plan your next move.
-                       </p>
+                     <div style={{ marginBottom: '1.5rem', background: '#fff7ed', padding: '1.25rem', borderRadius: '16px', border: '1px solid #ffedd5', boxShadow: '0 4px 12px rgba(251, 191, 36, 0.1)' }}>
+                       <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                         <span style={{ fontSize: '1.5rem' }}>⚠️</span>
+                         <div style={{ flex: 1 }}>
+                           <h4 style={{ color: '#9a3412', margin: '0 0 0.5rem 0', fontSize: '1.1rem' }}>Journey Incomplete</h4>
+                           {(() => {
+                             const failure = calculateFailurePoint();
+                             if (failure) {
+                               return (
+                                 <>
+                                   <p style={{ color: '#475569', fontSize: '0.9rem', margin: '0 0 1rem 0', lineHeight: '1.5' }}>
+                                     You can travel only <strong>~{failure.rangeKm} km</strong> with current battery, 
+                                     but the next required segment is <strong>~{failure.segmentDistance} km</strong>.
+                                   </p>
+                                   <div style={{ background: 'white', padding: '0.8rem', borderRadius: '8px', border: '1px dashed #fbbf24' }}>
+                                     <p style={{ color: '#1e293b', fontSize: '0.85rem', fontWeight: 600, margin: '0 0 4px 0' }}>⚡ Suggested Action:</p>
+                                     <p style={{ color: '#64748b', fontSize: '0.85rem', margin: 0 }}>
+                                       Add a charging stop between <strong>{failure.from}</strong> → <strong>{failure.to}</strong> to continue safely.
+                                     </p>
+                                   </div>
+                                 </>
+                               );
+                             }
+                             return (
+                               <p style={{ color: '#475569', fontSize: '0.9rem', margin: 0 }}>
+                                 {multiStopPlan.error || 'The journey cannot be completed with current battery levels and charging infrastructure.'}
+                               </p>
+                             );
+                           })()}
+                         </div>
+                       </div>
                      </div>
                    )}
 

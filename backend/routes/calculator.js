@@ -687,10 +687,19 @@ router.post('/multi-stop-plan', [
 
     let fallbackTotalDistanceKm = 0;
     let fallbackTotalTimeMinutes = 0;
+    const allLegMetrics = [];
+
     for (let i = 0; i < points.length - 1; i++) {
         const metrics = await getRawRouteMetrics(points[i], points[i+1]);
         fallbackTotalDistanceKm += metrics.distanceKm;
         fallbackTotalTimeMinutes += metrics.durationMin;
+        allLegMetrics.push({
+          index: i + 1,
+          from: points[i],
+          to: points[i+1],
+          distanceKm: metrics.distanceKm,
+          durationMin: metrics.durationMin
+        });
     }
 
     for (let i = 0; i < points.length - 1; i++) {
@@ -705,6 +714,7 @@ router.post('/multi-stop-plan', [
             legIndex: i + 1,
             points,
             legs: plans,
+            allLegs: allLegMetrics,
             totalDistanceKm: Math.round(fallbackTotalDistanceKm * 10) / 10,
             totalTimeMinutes: Math.round(fallbackTotalTimeMinutes * 10) / 10,
             potentialStations: segmentResult.potentialStations || []
