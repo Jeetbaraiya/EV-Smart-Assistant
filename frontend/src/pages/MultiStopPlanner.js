@@ -370,10 +370,11 @@ const MultiStopPlanner = () => {
                                    )}
                                    
                                    {!multiStopPlan.recommendedStation && (
-                                     <div style={{ background: 'white', padding: '0.8rem', borderRadius: '8px', border: '1px dashed #fbbf24' }}>
-                                       <p style={{ color: '#1e293b', fontSize: '0.85rem', fontWeight: 600, margin: '0 0 4px 0' }}>⚡ Suggested Action:</p>
-                                       <p style={{ color: '#64748b', fontSize: '0.85rem', margin: 0 }}>
-                                         Add a charging stop between <strong>{failure.from}</strong> → <strong>{failure.to}</strong> to continue safely.
+                                     <div style={{ background: '#fef2f2', padding: '0.8rem', borderRadius: '8px', border: '1px dashed #ef4444' }}>
+                                       <p style={{ color: '#991b1b', fontSize: '0.85rem', fontWeight: 600, margin: '0 0 4px 0' }}>❌ No Charging Stations Found:</p>
+                                       <p style={{ color: '#b91c1c', fontSize: '0.85rem', margin: 0 }}>
+                                         We couldn't find any chargers between <strong>{failure.from}</strong> and <strong>{failure.to}</strong>. 
+                                         Please consider an alternative route or manually search the map.
                                        </p>
                                      </div>
                                    )}
