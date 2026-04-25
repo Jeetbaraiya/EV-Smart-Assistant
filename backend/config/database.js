@@ -342,6 +342,7 @@ const createTables = () => new Promise((resolve) => {
 
       /** ── Startup Migration: Ensure bookings.station_id is VARCHAR ── */
       const runMigration = async () => {
+        try {
           const [[{ dbName }]] = await pool.promise().query('SELECT DATABASE() as dbName');
           console.log(`[db-mig] Running migrations on database: ${dbName}`);
 
