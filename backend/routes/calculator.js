@@ -62,7 +62,6 @@ router.post('/predict-range', [
   body('efficiency').optional().isFloat({ min: 0 }).withMessage('Base efficiency (kWh per 100 km) must be positive'),
   body('speedKmph').optional().isFloat({ min: 5 }).withMessage('speedKmph must be >= 5'),
   body('trafficLevel').optional().isIn(['low', 'medium', 'high']).withMessage('trafficLevel must be low/medium/high'),
-  body('temperatureC').optional().isFloat().withMessage('temperatureC must be a number'),
   body('drivingStyle').optional().isIn(['eco', 'normal', 'aggressive']).withMessage('drivingStyle must be eco/normal/aggressive')
 ], (req, res) => {
   try {
@@ -77,7 +76,6 @@ router.post('/predict-range', [
       efficiency = AVERAGE_EFFICIENCY,
       speedKmph = 60,
       trafficLevel = 'medium',
-      temperatureC = 25,
       drivingStyle = 'normal'
     } = req.body;
 
@@ -91,14 +89,12 @@ router.post('/predict-range', [
       trafficLevel === 'high' ? 1.18 :
       1.08;
 
-    const tempFactor = temperatureC < 15 ? 1.22 : temperatureC < 25 ? 1.10 : 1.0;
-
     const styleFactor =
       drivingStyle === 'eco' ? 0.9 :
       drivingStyle === 'aggressive' ? 1.18 :
       1.0;
 
-    const adjustedEfficiency = efficiency * speedFactor * trafficFactor * tempFactor * styleFactor;
+    const adjustedEfficiency = efficiency * speedFactor * trafficFactor * styleFactor;
     const rangeKm = (availableEnergy / adjustedEfficiency) * 100;
 
     res.json({
@@ -106,7 +102,7 @@ router.post('/predict-range', [
       batteryCapacity,
       baseEfficiency: efficiency,
       adjustedEfficiency: Math.round(adjustedEfficiency * 10) / 10,
-      inputs: { speedKmph, trafficLevel, temperatureC, drivingStyle },
+      inputs: { speedKmph, trafficLevel, drivingStyle },
       range: {
         kilometers: Math.round(rangeKm * 10) / 10
       },

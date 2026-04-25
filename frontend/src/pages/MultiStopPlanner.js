@@ -29,7 +29,7 @@ const MultiStopPlanner = () => {
   const [formData, setFormData]                 = useState({
     batteryPercentage: '80', batteryCapacity: '45',
     efficiency: '15', speedKmph: '80', trafficLevel: 'medium', 
-    temperatureC: '25', drivingStyle: 'normal'
+    drivingStyle: 'normal'
   });
   
   const [multiStopInput, setMultiStopInput]     = useState('');
@@ -101,10 +101,7 @@ const MultiStopPlanner = () => {
       const points = await parseMultiStopPoints();
       if (!points) { setError('Enter format like: Ahmedabad -> Udaipur -> Jaipur'); setPlannerLoading(false); return; }
       
-      const adjEff = adjustEfficiency(parseFloat(formData.efficiency), formData.drivingStyle, formData.trafficLevel);
-      const tempC = parseFloat(formData.temperatureC) || 25;
-      const tempFactor = tempC < 10 ? 1.25 : tempC < 20 ? 1.12 : 1.0;
-      const finalEff = adjEff * tempFactor;
+      const finalEff = adjustEfficiency(parseFloat(formData.efficiency), formData.drivingStyle, formData.trafficLevel);
 
       const res = await fetch(`${API_URL}/calculator/multi-stop-plan`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -265,10 +262,6 @@ const MultiStopPlanner = () => {
                       <option value="medium">Medium</option>
                       <option value="high">High</option>
                     </select>
-                  </div>
-                  <div className="form-group form-group-4">
-                    <label>Temp (°C)</label>
-                    <input type="number" name="temperatureC" value={formData.temperatureC} onChange={handleChange} required />
                   </div>
 
                   <div className="form-group form-group-12">

@@ -45,7 +45,7 @@ const RouteCheck = () => {
   const [formData, setFormData]                 = useState({
     distance: '', batteryPercentage: '', batteryCapacity: '60',
     efficiency: '20', unit: 'km', origin: '', destination: '',
-    speedKmph: '80', trafficLevel: 'medium', temperatureC: '25',
+    speedKmph: '80', trafficLevel: 'medium',
     drivingStyle: 'normal'
   });
   const [result, setResult]                     = useState(null);
@@ -134,12 +134,7 @@ const RouteCheck = () => {
       }
 
       // ── 3. Adjust efficiency for driving style + traffic ─────────────
-      const adjEff = adjustEfficiency(baseEff, formData.drivingStyle, formData.trafficLevel);
-
-      // Temperature penalty (applied on top)
-      const tempC = parseFloat(formData.temperatureC) || 25;
-      const tempFactor = tempC < 10 ? 1.25 : tempC < 20 ? 1.12 : 1.0;
-      const finalEff = adjEff * tempFactor;
+      const finalEff = adjustEfficiency(baseEff, formData.drivingStyle, formData.trafficLevel);
 
       // ── 4. Geocode & Distance ────────────────────────────────────────
       let distKm = formData.distance?.trim() ? parseFloat(formData.distance) : null;
@@ -384,11 +379,6 @@ const RouteCheck = () => {
                       <option value="medium">Medium</option>
                       <option value="high">High</option>
                     </select>
-                  </div>
-                  <div className="form-group form-group-4">
-                    <label>Temp (°C)</label>
-                    <input type="number" name="temperatureC" value={formData.temperatureC}
-                      onChange={handleChange} required />
                   </div>
 
                   <div className="form-group form-group-12">

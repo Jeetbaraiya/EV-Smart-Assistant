@@ -8,7 +8,6 @@ const RangeCalculator = () => {
     efficiency: '20',
     speedKmph: '80',
     trafficLevel: 'medium',
-    temperatureC: '25',
     drivingStyle: 'normal'
   });
   const [result, setResult] = useState(null);
@@ -67,7 +66,6 @@ const RangeCalculator = () => {
           efficiency: parseFloat(formData.efficiency),
           speedKmph: parseFloat(formData.speedKmph),
           trafficLevel: formData.trafficLevel,
-          temperatureC: parseFloat(formData.temperatureC),
           drivingStyle: formData.drivingStyle
         })
       });
@@ -171,12 +169,6 @@ const RangeCalculator = () => {
                     <label>Speed (km/h)</label>
                     <input type="number" name="speedKmph" value={formData.speedKmph}
                       onChange={handleChange} required min="5" step="1" placeholder="80" />
-                  </div>
-
-                  <div className="form-group">
-                    <label>Temperature (°C)</label>
-                    <input type="number" name="temperatureC" value={formData.temperatureC}
-                      onChange={handleChange} required step="1" placeholder="25" />
                   </div>
 
                   <div className="form-group">
