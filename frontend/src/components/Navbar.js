@@ -149,6 +149,7 @@ const Navbar = () => {
   const closeMobileMenu = () => {
     setIsMobileMenuOpen(false);
     setIsRouteDropdownOpen(false);
+    setIsMobileRouteOpen(false);
   };
 
   const [isMobileRouteOpen, setIsMobileRouteOpen] = useState(false);
@@ -332,7 +333,12 @@ const Navbar = () => {
         <>
           <nav className="mobile-top-nav mobile-top-nav--user">
             <div className="mobile-top-nav-inner">
-              <NavLink to="/" end className="mobile-top-link" onClick={closeMobileMenu}>
+              <NavLink 
+                to="/" 
+                end 
+                className={({ isActive }) => `mobile-top-link ${isActive && !isMobileRouteOpen ? 'active' : ''}`}
+                onClick={closeMobileMenu}
+              >
                 <span className="mobile-top-icon"><IconHome /></span>
                 <span>Home</span>
               </NavLink>
@@ -343,22 +349,38 @@ const Navbar = () => {
                 <span className="mobile-top-icon"><IconMap /></span>
                 <span>Route</span>
               </button>
-              <NavLink to="/stations" className="mobile-top-link" onClick={closeMobileMenu}>
+              <NavLink 
+                to="/stations" 
+                className={({ isActive }) => `mobile-top-link ${isActive && !isMobileRouteOpen ? 'active' : ''}`}
+                onClick={closeMobileMenu}
+              >
                 <span className="mobile-top-icon"><IconStation /></span>
                 <span>Stations</span>
               </NavLink>
-              <NavLink to="/vehicles" className="mobile-top-link" onClick={closeMobileMenu}>
+              <NavLink 
+                to="/vehicles" 
+                className={({ isActive }) => `mobile-top-link ${isActive && !isMobileRouteOpen ? 'active' : ''}`}
+                onClick={closeMobileMenu}
+              >
                 <span className="mobile-top-icon"><IconCar /></span>
                 <span>Vehicles</span>
               </NavLink>
-              <NavLink to="/my-bookings" className="mobile-top-link" onClick={closeMobileMenu}>
+              <NavLink 
+                to="/my-bookings" 
+                className={({ isActive }) => `mobile-top-link ${isActive && !isMobileRouteOpen ? 'active' : ''}`}
+                onClick={closeMobileMenu}
+              >
                 <span className="mobile-top-icon"><IconCalendar /></span>
                 <span>Bookings</span>
               </NavLink>
-              <Link to="/profile" className="mobile-top-link" onClick={closeMobileMenu}>
+              <NavLink 
+                to="/profile" 
+                className={({ isActive }) => `mobile-top-link ${isActive && !isMobileRouteOpen ? 'active' : ''}`}
+                onClick={closeMobileMenu}
+              >
                 <span className="mobile-top-icon"><IconEVUser /></span>
                 <span>{user?.username?.slice(0,6) || 'Profile'}</span>
-              </Link>
+              </NavLink>
             </div>
           </nav>
 
