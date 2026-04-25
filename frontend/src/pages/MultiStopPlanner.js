@@ -273,15 +273,15 @@ const MultiStopPlanner = () => {
           {multiStopPlan && (
             <div className="calc-results-section" ref={resultsRef}>
               <div className="result-card">
-                <div className={`route-status ${multiStopPlan.planned ? 'reachable' : 'unreachable'}`}>
-                  <div className="route-status-icon">{multiStopPlan.planned ? '✅' : '⚠️'}</div>
-                  <div>
-                    <h3>{multiStopPlan.planned ? 'Journey Optimized' : 'Incomplete Journey'}</h3>
-                    <p className="recommendation">
-                      {multiStopPlan.planned 
-                        ? 'Your full journey has been mapped out with charging stops.' 
-                        : ''}
-                    </p>
+                <div className={`route-status ${multiStopPlan.planned ? 'reachable' : 'unreachable'}`} style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                  <div className="route-status-icon" style={{ marginBottom: 0 }}>{multiStopPlan.planned ? '✅' : '⚠️'}</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                    <h3 style={{ margin: 0 }}>{multiStopPlan.planned ? 'Journey Optimized' : 'Incomplete Journey'}</h3>
+                    {multiStopPlan.planned && (
+                      <p className="recommendation" style={{ margin: '4px 0 0 0' }}>
+                        Your full journey has been mapped out with charging stops.
+                      </p>
+                    )}
                   </div>
                 </div>
 
