@@ -498,34 +498,65 @@ router.post('/optimize-route', [
       } catch { return null; }
     })();
 
+    // 1. Get BBox from polyline to optimize search
+    const getBBox = (path, padding = 0.1) => {
+      let minLat = Infinity, maxLat = -Infinity, minLon = Infinity, maxLon = -Infinity;
+      path.forEach(([lat, lon]) => {
+        minLat = Math.min(minLat, lat); maxLat = Math.max(maxLat, lat);
+        minLon = Math.min(minLon, lon); maxLon = Math.max(maxLon, lon);
+      });
+      return { minLat: minLat - padding, maxLat: maxLat + padding, minLon: minLon - padding, maxLon: maxLon + padding };
+    };
+
+    const bbox = polyline ? getBBox(polyline, 0.08) : null; // ~8km padding for bbox
+
+    // 2. Filter stations using BBox if available
+    const allPotentialStations = [
+      ...verifiedStations.map(s => ({
+        ...s, latitude: s.latitude ?? s.lat ?? null, longitude: s.longitude ?? s.lon ?? s.lng ?? null,
+        status: s.status || (s.availability === 'available' ? 'available' : 'offline'), slots_total: s.slots_total || 4, slots_available: s.slots_available ?? 4, expected_wait_minutes: 0, source: 'verified'
+      })),
+      ...indiaStations
+    ].filter(s => {
+      const lat = parseFloat(s.latitude);
+      const lon = parseFloat(s.longitude);
+      if (isNaN(lat) || isNaN(lon)) return false;
+      if (bbox) {
+        return lat >= bbox.minLat && lat <= bbox.maxLat && lon >= bbox.minLon && lon <= bbox.maxLon;
+      }
+      return true;
+    });
+
     const stationsWithProximity = allPotentialStations.map(station => {
       const sLat = parseFloat(station.latitude);
       const sLon = parseFloat(station.longitude);
-      if (isNaN(sLat) || isNaN(sLon)) return null;
 
       let minProximity = Infinity;
       if (polyline && polyline.length > 0) {
-        const step = 10;
+        // High-precision corridor check: sample the route to ensure coverage
+        const step = polyline.length > 500 ? 15 : 5; 
         for (let i = 0; i < polyline.length; i += step) {
           const d = haversineKm(sLat, sLon, polyline[i][0], polyline[i][1]);
           if (d < minProximity) minProximity = d;
+          if (minProximity < 0.5) break; // Optimization: If very close, stop checking
         }
         const dLast = haversineKm(sLat, sLon, polyline[polyline.length-1][0], polyline[polyline.length-1][1]);
         if (dLast < minProximity) minProximity = dLast;
       } else {
-        const lineLenSq = (destLat - originLat) ** 2 + (destLon - originLon) ** 2;
-        let t = lineLenSq > 0 ? Math.max(0, Math.min(1, ((sLat - originLat) * (destLat - originLat) + (sLon - originLon) * (destLon - originLon)) / lineLenSq)) : 0;
-        minProximity = haversineKm(sLat, sLon, originLat + t * (destLat - originLat), originLon + t * (destLon - originLon));
+        // Fallback for direct point-to-point if routing fails
+        const d1 = haversineKm(sLat, sLon, originLat, originLon);
+        const d2 = haversineKm(sLat, sLon, destLat, destLon);
+        minProximity = Math.min(d1, d2);
       }
       return { ...station, proximityKm: minProximity };
     }).filter(Boolean).filter(s => {
-      if (s.proximityKm > 30) return false; // Increased corridor search to 30km for long routes
+      if (s.proximityKm > 5) return false; // STRICT 5km buffer for highway stations
       if (filters.availableOnly && String(s.status || 'available') !== 'available') return false;
-      if (filters.fastChargerOnly && Number(s.power_kw || 0) < 50) return false;
+      if (filters.fastChargerOnly && Number(s.power_kw || 0) < 30) return false; 
       if (filters.minPowerKw != null && Number(s.power_kw || 0) < parseFloat(filters.minPowerKw)) return false;
       return true;
     }).sort((a, b) => a.proximityKm - b.proximityKm)
-    .slice(0, 150); // Show more stations on long routes
+    .slice(0, 100); // Reasonable sample size
 
     // WARNING: No stations found in corridor
     if (stationsWithProximity.length === 0) {

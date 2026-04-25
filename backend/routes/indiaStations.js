@@ -4,7 +4,24 @@ const router = express.Router();
 
 // Sample India charging stations data (for demonstration)
 // In production, this would fetch from real APIs like Statiq, PlugKart, etc.
-const sampleIndiaStations = [];
+const sampleIndiaStations = [
+  // --- Bhavnagar to Ahmedabad Highway (NH 751 / NH 47) ---
+  { id: 'ind_hwy_1', name: 'NH-751 Fast Charger Bagodara', city: 'Bagodara', state: 'Gujarat', latitude: 22.4345, longitude: 72.1345, network: 'Statiq', power_kw: 60, connector_type: 'CCS2', availability: 'available' },
+  { id: 'ind_hwy_2', name: 'Dhandhuka Highway Hub', city: 'Dhandhuka', state: 'Gujarat', latitude: 22.3789, longitude: 71.9856, network: 'Tata Power', power_kw: 30, connector_type: 'CCS2', availability: 'available' },
+  { id: 'ind_hwy_3', name: 'Bavla EV Point', city: 'Bavla', state: 'Gujarat', latitude: 22.8345, longitude: 72.3678, network: 'Jio-bp', power_kw: 50, connector_type: 'CCS2', availability: 'available' },
+
+  // --- Ahmedabad to Rajkot / Somnath Highway (NH 47 / NH 27) ---
+  { id: 'ind_hwy_4', name: 'Limbdi Highway Plaza Charging', city: 'Limbdi', state: 'Gujarat', latitude: 22.5678, longitude: 71.8901, network: 'Statiq', power_kw: 120, connector_type: 'CCS2', availability: 'available' },
+  { id: 'ind_hwy_5', name: 'Chotila Hill View EV Hub', city: 'Chotila', state: 'Gujarat', latitude: 22.4234, longitude: 71.1890, network: 'Tata Power', power_kw: 60, connector_type: 'CCS2', availability: 'available' },
+  { id: 'ind_hwy_6', name: 'Gondal Bypass Fast DC', city: 'Gondal', state: 'Gujarat', latitude: 21.9678, longitude: 70.7890, network: 'Zeon', power_kw: 50, connector_type: 'CCS2', availability: 'available' },
+  { id: 'ind_hwy_7', name: 'Jetpur Junction EV Stop', city: 'Jetpur', state: 'Gujarat', latitude: 21.7543, longitude: 70.6234, network: 'Statiq', power_kw: 60, connector_type: 'CCS2', availability: 'available' },
+  { id: 'ind_hwy_8', name: 'Junagadh Gateway Charging', city: 'Junagadh', state: 'Gujarat', latitude: 21.5234, longitude: 70.4567, network: 'Tata Power', power_kw: 30, connector_type: 'CCS2', availability: 'available' },
+  { id: 'ind_hwy_9', name: 'Veraval Coast EV Park', city: 'Veraval', state: 'Gujarat', latitude: 20.9123, longitude: 70.3678, network: 'Statiq', power_kw: 60, connector_type: 'CCS2', availability: 'available' },
+
+  // --- City Center Stations (Ahmedabad) ---
+  { id: 'ind_city_1', name: 'Ahmedabad Riverfront Mall EV', city: 'Ahmedabad', state: 'Gujarat', latitude: 23.0225, longitude: 72.5714, network: 'Jio-bp', power_kw: 50, connector_type: 'CCS2', availability: 'available' },
+  { id: 'ind_city_2', name: 'C.G. Road Charging Point', city: 'Ahmedabad', state: 'Gujarat', latitude: 23.0333, longitude: 72.5621, network: 'Tata Power', power_kw: 25, connector_type: 'CCS2', availability: 'available' }
+];
 
 // Get all India charging stations
 
