@@ -260,15 +260,10 @@ const MultiStopPlanner = () => {
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', gap: '12px', marginTop: '1.5rem' }}>
-                  <button type="button" className="calculate-button" onClick={handlePlanMultiStop} disabled={plannerLoading} style={{ flex: 2 }}>
-                    {plannerLoading ? '⏳ Planning...' : '🚀 Build Plan'}
-                  </button>
-                  <button type="button" className="calculate-button" onClick={() => handlePlanMultiStop('min_time')} disabled={plannerLoading} 
-                    style={{ flex: 1, background: 'linear-gradient(135deg, #8b5cf6, #6366f1)', fontSize: '0.85rem' }}>
-                    ✨ Optimize
-                  </button>
-                </div>
+                <button type="button" className="calculate-button" onClick={handlePlanMultiStop} disabled={plannerLoading}
+                  style={{ marginTop: '1.5rem' }}>
+                  {plannerLoading ? '⏳ Planning...' : '🚀 Build Multi-Stop Plan'}
+                </button>
               </div>
             </div>
             {error && <div className="error-message" style={{ marginTop: '1rem' }}>⚠️ {error}</div>}
