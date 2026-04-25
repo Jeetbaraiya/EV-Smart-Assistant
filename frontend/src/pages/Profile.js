@@ -93,7 +93,7 @@ const Profile = () => {
               </div>
             </div>
 
-            <div className="info-item">
+            {/* <div className="info-item">
               <div className="info-icon-box">
                 <IconShield />
               </div>
@@ -101,7 +101,7 @@ const Profile = () => {
                 <label>Login Mode</label>
                 <span>JWT Secure Auth</span>
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
 
