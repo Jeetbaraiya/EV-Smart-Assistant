@@ -95,7 +95,7 @@ const MultiStopPlanner = () => {
     return points;
   };
 
-  const handlePlanMultiStop = async () => {
+  const handlePlanMultiStop = async (strategy = 'min_stops') => {
     setPlannerLoading(true); setError('');
     try {
       const points = await parseMultiStopPoints();
@@ -114,7 +114,7 @@ const MultiStopPlanner = () => {
           batteryCapacity: parseFloat(formData.batteryCapacity), 
           efficiency: finalEff,
           avgSpeedKmph: parseFloat(formData.speedKmph), 
-          optimizeFor: 'min_stops', 
+          optimizeFor: typeof strategy === 'string' ? strategy : 'min_stops', 
           maxStationsToConsider: 20,
           filters: {
             fastChargerOnly: routeFilters.fastChargerOnly,
@@ -260,10 +260,15 @@ const MultiStopPlanner = () => {
                   </div>
                 </div>
 
-                <button type="button" className="calculate-button" onClick={handlePlanMultiStop} disabled={plannerLoading}
-                  style={{ marginTop: '1.5rem' }}>
-                  {plannerLoading ? '⏳ Planning Route...' : '🚀 Build Multi-Stop Plan'}
-                </button>
+                <div style={{ display: 'flex', gap: '12px', marginTop: '1.5rem' }}>
+                  <button type="button" className="calculate-button" onClick={handlePlanMultiStop} disabled={plannerLoading} style={{ flex: 2 }}>
+                    {plannerLoading ? '⏳ Planning...' : '🚀 Build Plan'}
+                  </button>
+                  <button type="button" className="calculate-button" onClick={() => handlePlanMultiStop('min_time')} disabled={plannerLoading} 
+                    style={{ flex: 1, background: 'linear-gradient(135deg, #8b5cf6, #6366f1)', fontSize: '0.85rem' }}>
+                    ✨ Optimize
+                  </button>
+                </div>
               </div>
             </div>
             {error && <div className="error-message" style={{ marginTop: '1rem' }}>⚠️ {error}</div>}
@@ -367,6 +372,26 @@ const MultiStopPlanner = () => {
                      ))}
                    </ul>
 
+                   {/* MOVED MAP: Below journey details and above potential stations */}
+                   {routeCoords.origin && routeCoords.dest && (
+                      <div style={{ marginTop: '1.5rem', marginBottom: '1.5rem' }}>
+                        <RouteMap
+                          originCoords={routeCoords.origin} 
+                          destCoords={routeCoords.dest}
+                          distance={multiStopPlan.totalDistanceKm || (multiStopPlan.legs?.reduce((s,l) => s+l.distanceKm, 0) || 0).toFixed(1)}
+                          stations={multiStopPlan.planned 
+                            ? (multiStopPlan.allStationsInCorridor || []).map(st => ({
+                                ...st,
+                                isPlannedStop: multiStopPlan.legs.some(l => l.stops?.some(stop => stop.id === st.id))
+                              }))
+                            : (multiStopPlan.potentialStations || []).map(st => ({ ...st, isPlannedStop: false }))}
+                          useStationsAsWaypoints={multiStopPlan.planned}
+                          pathCoordinates={getMultiStopPath()}
+                          waypoints={multiStopPlan.points || []}
+                        />
+                      </div>
+                    )}
+
                    {!multiStopPlan.planned && multiStopPlan.potentialStations?.length > 0 && (
                      <div style={{ marginTop: '1.5rem' }}>
                         <h5 style={{ color: '#1e293b', marginBottom: '0.8rem', fontSize: '0.95rem' }}>📡 Potential Charging Points Nearby</h5>
@@ -381,25 +406,6 @@ const MultiStopPlanner = () => {
                      </div>
                    )}
                 </div>
-
-                {routeCoords.origin && routeCoords.dest && (
-                   <div style={{ marginTop: '2rem' }}>
-                    <RouteMap
-                      originCoords={routeCoords.origin} 
-                      destCoords={routeCoords.dest}
-                      distance={multiStopPlan.totalDistanceKm || (multiStopPlan.legs?.reduce((s,l) => s+l.distanceKm, 0) || 0).toFixed(1)}
-                      stations={multiStopPlan.planned 
-                        ? (multiStopPlan.allStationsInCorridor || []).map(st => ({
-                            ...st,
-                            isPlannedStop: multiStopPlan.legs.some(l => l.stops?.some(stop => stop.id === st.id))
-                          }))
-                        : (multiStopPlan.potentialStations || []).map(st => ({ ...st, isPlannedStop: false }))}
-                      useStationsAsWaypoints={multiStopPlan.planned}
-                      pathCoordinates={getMultiStopPath()}
-                      waypoints={multiStopPlan.points || []}
-                    />
-                  </div>
-                )}
               </div>
             </div>
           )}
