@@ -342,13 +342,15 @@ const createTables = () => new Promise((resolve) => {
 
       /** ── Startup Migration: Ensure bookings.station_id is VARCHAR ── */
       const runMigration = async () => {
-        try {
+          const [[{ dbName }]] = await pool.promise().query('SELECT DATABASE() as dbName');
+          console.log(`[db-mig] Running migrations on database: ${dbName}`);
+
           // 1. Check if we need to drop a foreign key
           const [fkRows] = await pool.promise().query(`
             SELECT CONSTRAINT_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
             WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'bookings' 
             AND COLUMN_NAME = 'station_id' AND REFERENCED_TABLE_NAME IS NOT NULL
-          `, [database]);
+          `, [dbName]);
 
           if (fkRows && fkRows.length > 0) {
             for (const row of fkRows) {
@@ -372,7 +374,7 @@ const createTables = () => new Promise((resolve) => {
           const [colRows] = await pool.promise().query(`
             SELECT COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS
             WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'bookings' AND COLUMN_NAME = 'station_id'
-          `, [database]);
+          `, [dbName]);
 
           if (colRows && colRows.length > 0 && colRows[0].COLUMN_TYPE.toLowerCase().includes('int')) {
             console.log('[db-mig] Converting bookings.station_id to VARCHAR(255)');
@@ -383,7 +385,7 @@ const createTables = () => new Promise((resolve) => {
           const [labelCol] = await pool.promise().query(`
             SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
             WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'bookings' AND COLUMN_NAME = 'connector_type_label'
-          `, [database]);
+          `, [dbName]);
 
           if (labelCol.length === 0) {
             console.log('[db-mig] Adding missing connector_type_label column');
@@ -394,7 +396,7 @@ const createTables = () => new Promise((resolve) => {
           const [vehCol] = await pool.promise().query(`
             SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
             WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'vehicles' AND COLUMN_NAME = 'connector_types'
-          `, [database]);
+          `, [dbName]);
 
           if (vehCol.length === 0) {
             console.log('[db-mig] Adding missing connector_types column to vehicles');
