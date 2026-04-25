@@ -19,6 +19,18 @@ const Vehicles = () => {
   const [editingId, setEditingId] = useState(null);
   const [batteryPct, setBatteryPct] = useState(55);
   const [formError, setFormError] = useState('');
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  const connectorOptions = [
+    'CCS2',
+    'Type 2',
+    'CHAdeMO',
+    'Bharat DC-001',
+    'Bharat AC-001',
+    'GB/T',
+    '15A/16A Socket',
+    'Other'
+  ];
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
   useEffect(() => {
@@ -59,9 +71,10 @@ const Vehicles = () => {
       
       if (commonEVs.some(ev => lowerName.includes(ev))) {
         // Auto-suggest CCS2 and Type 2 for these common Indian EVs
-        if (!newForm.connector_types.includes('CCS2')) {
-          newForm.connector_types = ['CCS2', 'Type 2 (AC)'];
-        }
+        const suggestions = ['CCS2', 'Type 2'];
+        const current = newForm.connector_types || [];
+        const merged = [...new Set([...current, ...suggestions])];
+        newForm.connector_types = merged;
       }
     }
     setForm(newForm);
@@ -213,18 +226,40 @@ const Vehicles = () => {
 
               <div className="v-form-group" style={{ marginTop: '1.25rem' }}>
                 <label>Supported Connector Types ⚡</label>
-                <div className="v-connector-grid">
-                  {['Type 2 (AC)', 'CCS2', 'CHAdeMO', 'GB/T'].map(type => (
-                    <label key={type} className={`v-connector-chip ${(form.connector_types || []).includes(type) ? 'active' : ''}`}>
-                      <input 
-                        type="checkbox" 
-                        hidden
-                        checked={(form.connector_types || []).includes(type)} 
-                        onChange={() => handleConnectorToggle(type)}
-                      />
-                      <span className="chip-icon">{type === 'Type 2 (AC)' ? '🔌' : '⚡'}</span>
-                      <span>{type}</span>
-                    </label>
+                <div className={`v-multi-select ${dropdownOpen ? 'open' : ''}`}>
+                  <div className="v-select-trigger" onClick={() => setDropdownOpen(!dropdownOpen)}>
+                    <span className="v-select-label">
+                      {(form.connector_types || []).length > 0 
+                        ? `${(form.connector_types || []).length} Selected`
+                        : 'Select Connectors...'}
+                    </span>
+                    <span className="v-select-arrow">{dropdownOpen ? '▲' : '▼'}</span>
+                  </div>
+                  
+                  {dropdownOpen && (
+                    <div className="v-dropdown-menu">
+                      {connectorOptions.map(type => (
+                        <label key={type} className="v-dropdown-item">
+                          <input 
+                            type="checkbox" 
+                            checked={(form.connector_types || []).includes(type)} 
+                            onChange={() => handleConnectorToggle(type)}
+                          />
+                          <span className="v-item-text">{type}</span>
+                          {(form.connector_types || []).includes(type) && <span className="v-item-check">✓</span>}
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                
+                {/* Visual Chips for selected items */}
+                <div className="v-selected-chips">
+                  {(form.connector_types || []).map(type => (
+                    <span key={type} className="v-mini-chip">
+                      {type}
+                      <button type="button" onClick={() => handleConnectorToggle(type)}>✕</button>
+                    </span>
                   ))}
                 </div>
               </div>
