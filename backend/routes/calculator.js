@@ -571,10 +571,40 @@ router.post('/optimize-route', [
       ratingRows.forEach(r => { ratingMap[String(r.station_id)] = { avg_rating: r.avg_rating, review_count: r.review_count }; });
     }
 
+    // ── PROJECT NODES ONTO POLYLINE ──────────────────────────
+    const distToSegment = (px, py, x1, y1, x2, y2) => {
+      const l2 = (x2-x1)**2 + (y2-y1)**2;
+      if (l2 === 0) return haversineKm(px, py, x1, y1);
+      let t = ((px-x1)*(x2-x1) + (py-y1)*(y2-y1)) / l2;
+      t = Math.max(0, Math.min(1, t));
+      return haversineKm(px, py, x1 + t*(x2-x1), y1 + t*(y2-y1));
+    };
+
+    const projectToPolyline = (lat, lon, polyline) => {
+      let minDist = Infinity;
+      let totalDist = 0;
+      let bestDistAlong = 0;
+      for (let i = 0; i < polyline.length - 1; i++) {
+        const p1 = polyline[i], p2 = polyline[i+1];
+        const segLen = haversineKm(p1[0], p1[1], p2[0], p2[1]);
+        const d = distToSegment(lat, lon, p1[0], p1[1], p2[0], p2[1]);
+        if (d < minDist) { minDist = d; bestDistAlong = totalDist + (segLen / 2); }
+        totalDist += segLen;
+      }
+      return bestDistAlong;
+    };
+
     const nodes = [
-      { key: 'origin', type: 'origin', lat: originLat, lon: originLon },
-      ...stationsWithProximity.map(s => ({ key: `station_${s.id}`, type: 'station', station: s, lat: parseFloat(s.latitude), lon: parseFloat(s.longitude) })),
-      { key: 'destination', type: 'destination', lat: destLat, lon: destLon }
+      { key: 'origin', type: 'origin', lat: originLat, lon: originLon, roadPos: 0 },
+      ...stationsWithProximity.map(s => ({ 
+        key: `station_${s.id}`, 
+        type: 'station', 
+        station: s, 
+        lat: parseFloat(s.latitude), 
+        lon: parseFloat(s.longitude),
+        roadPos: projectToPolyline(parseFloat(s.latitude), parseFloat(s.longitude), decodedPolyline)
+      })),
+      { key: 'destination', type: 'destination', lat: destLat, lon: destLon, roadPos: totalRoadDistance }
     ];
 
     const originIndex = 0;
@@ -588,7 +618,9 @@ router.post('/optimize-route', [
 
     const edgeCost = (fromIdx, toIdx) => {
       const fromNode = nodes[fromIdx], toNode = nodes[toIdx];
-      const distanceKm = haversineKm(fromNode.lat, fromNode.lon, toNode.lat, toNode.lon);
+      if (toNode.roadPos <= fromNode.roadPos) return null;
+      const distanceKm = toNode.roadPos - fromNode.roadPos;
+      
       if (fromNode.type === 'origin') { if (distanceKm > initialRangeKm) return null; }
       else if (fromNode.type === 'station') { if (distanceKm > fullRangeKm) return null; if (fromNode.station.status === 'offline') return null; }
       else return null;
@@ -620,10 +652,9 @@ router.post('/optimize-route', [
       let recommendedStation = null;
       let maxDistFromStart = -1;
       
-      stationsWithProximity.forEach(st => {
-        const sLat = parseFloat(st.latitude);
-        const sLon = parseFloat(st.longitude);
-        const dFromStart = haversineKm(originLat, originLon, sLat, sLon);
+      nodes.filter(n => n.type === 'station').forEach(node => {
+        const dFromStart = node.roadPos;
+        const st = node.station;
         
         if (dFromStart <= initialRangeKm && dFromStart > maxDistFromStart) {
           maxDistFromStart = dFromStart;
@@ -634,8 +665,8 @@ router.post('/optimize-route', [
             distance: Math.round(dFromStart * 10) / 10,
             from: originCoords.label || 'Origin',
             to: destCoords.label || 'Destination',
-            lat: sLat, 
-            lng: sLon,
+            lat: node.lat, 
+            lng: node.lon,
             power_kw: st.power_kw, 
             status: st.status, 
             source: st.source
