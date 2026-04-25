@@ -151,6 +151,7 @@ const Navbar = () => {
     setIsRouteDropdownOpen(false);
   };
 
+  const [isMobileRouteOpen, setIsMobileRouteOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // ── Admin or Owner: Left Sidebar + Mobile Top Nav ────────────────────────────
@@ -297,6 +298,35 @@ const Navbar = () => {
   // ── Regular Auth or Guest: Top Navbar ────────────────────────────────────────
   return (
     <>
+      {/* ── Mobile Dropup for Route Options ── */}
+      {isAuthenticated && isMobileRouteOpen && (
+        <>
+          <div className="mobile-dropup-overlay" onClick={() => setIsMobileRouteOpen(false)}></div>
+          <div className="mobile-dropup">
+            <div className="mobile-dropup-header">
+              <div className="dropup-pill"></div>
+              <h4>Route Planner</h4>
+            </div>
+            <div className="mobile-dropup-body">
+              <NavLink to="/calculator/route-check" className="mobile-dropup-item" onClick={() => { setIsMobileRouteOpen(false); closeMobileMenu(); }}>
+                <span className="dropup-icon">🗺️</span>
+                <div className="dropup-text">
+                  <span className="dropup-title">Route Feasibility</span>
+                  <span className="dropup-desc">Check if you can reach a single destination</span>
+                </div>
+              </NavLink>
+              <NavLink to="/calculator/multi-stop" className="mobile-dropup-item" onClick={() => { setIsMobileRouteOpen(false); closeMobileMenu(); }}>
+                <span className="dropup-icon">📍</span>
+                <div className="dropup-text">
+                  <span className="dropup-title">Multi-Stop Planner</span>
+                  <span className="dropup-desc">Plan a complex trip with multiple stops</span>
+                </div>
+              </NavLink>
+            </div>
+          </div>
+        </>
+      )}
+
       {/* ── Mobile Top Nav (authenticated users only, hidden on desktop) ── */}
       {isAuthenticated && (
         <>
@@ -306,10 +336,13 @@ const Navbar = () => {
                 <span className="mobile-top-icon"><IconHome /></span>
                 <span>Home</span>
               </NavLink>
-              <NavLink to="/calculator/route-check" className="mobile-top-link" onClick={closeMobileMenu}>
+              <button 
+                className={`mobile-top-link ${isMobileRouteOpen ? 'active' : ''}`} 
+                onClick={() => setIsMobileRouteOpen(!isMobileRouteOpen)}
+              >
                 <span className="mobile-top-icon"><IconMap /></span>
                 <span>Route</span>
-              </NavLink>
+              </button>
               <NavLink to="/stations" className="mobile-top-link" onClick={closeMobileMenu}>
                 <span className="mobile-top-icon"><IconStation /></span>
                 <span>Stations</span>

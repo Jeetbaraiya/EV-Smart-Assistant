@@ -1479,3 +1479,115 @@
     letter-spacing: 0px;
   }
 }
+
+/* ── Mobile Route Dropup Styles ── */
+.mobile-dropup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(8px);
+  z-index: 1090;
+  animation: fadeIn 0.3s ease;
+}
+
+.mobile-dropup {
+  position: fixed;
+  bottom: 58px; /* Height of bottom bar */
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border-radius: 24px 24px 0 0;
+  z-index: 1095;
+  padding: 1.25rem 1.25rem 2rem 1.25rem;
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.15);
+  animation: slideUpMobile 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUpMobile {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.mobile-dropup-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.dropup-pill {
+  width: 40px;
+  height: 4px;
+  background: #e2e8f0;
+  border-radius: 2px;
+  margin-bottom: 0.75rem;
+}
+
+.mobile-dropup-header h4 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #0f172a;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.mobile-dropup-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.mobile-dropup-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.1rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.mobile-dropup-item:active {
+  background: #f1f5f9;
+  transform: scale(0.98);
+}
+
+.dropup-icon {
+  font-size: 1.5rem;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.dropup-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.dropup-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.dropup-desc {
+  font-size: 0.75rem;
+  color: #64748b;
+  line-height: 1.2;
+}
+
+/* Ensure mobile links are clickable above other elements */
+.mobile-top-nav {
+  z-index: 1100;
+}
