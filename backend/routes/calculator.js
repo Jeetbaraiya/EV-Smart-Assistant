@@ -481,14 +481,6 @@ router.post('/optimize-route', [
       status: s.availability === 'available' ? 'available' : 'offline', slots_total: 4, slots_available: 2, expected_wait_minutes: 0, source: 'india_api'
     }));
 
-    const allPotentialStations = [
-      ...verifiedStations.map(s => ({
-        ...s, latitude: s.latitude ?? s.lat ?? null, longitude: s.longitude ?? s.lon ?? s.lng ?? null,
-        status: s.status || (s.availability === 'available' ? 'available' : 'offline'), slots_total: s.slots_total || 4, slots_available: s.slots_available ?? 4, expected_wait_minutes: 0, source: 'verified'
-      })),
-      ...indiaStations
-    ].filter(s => s.latitude != null && s.longitude != null);
-
     // Fetch road-accurate geometry for proximity
     const polyline = await (async () => {
       try {
@@ -508,7 +500,7 @@ router.post('/optimize-route', [
       return { minLat: minLat - padding, maxLat: maxLat + padding, minLon: minLon - padding, maxLon: maxLon + padding };
     };
 
-    const bbox = polyline ? getBBox(polyline, 0.08) : null; // ~8km padding for bbox
+    const bbox = polyline ? getBBox(polyline, 0.08) : null;
 
     // 2. Filter stations using BBox if available
     const allPotentialStations = [
@@ -556,7 +548,7 @@ router.post('/optimize-route', [
       if (filters.minPowerKw != null && Number(s.power_kw || 0) < parseFloat(filters.minPowerKw)) return false;
       return true;
     }).sort((a, b) => a.proximityKm - b.proximityKm)
-    .slice(0, 100); // Reasonable sample size
+    .slice(0, 100);
 
     // WARNING: No stations found in corridor
     if (stationsWithProximity.length === 0) {
@@ -707,8 +699,6 @@ router.post('/multi-stop-plan', [
       let segmentResult = await segmentResponse.json();
 
       if (!segmentResult?.optimized) {
-         // If a leg fails with the provided battery, we strictly mark it as unplanned.
-         // This prevents "faking" 100% battery at the start of a leg.
          return res.json({ 
             planned: false, 
             error: segmentResult.warning || segmentResult.error || `No feasible route for leg ${i + 1}`,
@@ -717,7 +707,6 @@ router.post('/multi-stop-plan', [
             legs: plans,
             totalDistanceKm: Math.round(fallbackTotalDistanceKm * 10) / 10,
             totalTimeMinutes: Math.round(fallbackTotalTimeMinutes * 10) / 10,
-            // Include potential stations to show on map for manual planning
             potentialStations: segmentResult.potentialStations || []
          });
       }
@@ -731,7 +720,6 @@ router.post('/multi-stop-plan', [
     }
 
     const allStationsInCorridorGroup = plans.flatMap(p => p.allStationsInCorridor || []);
-    // Remove duplicates by station ID
     const uniqueStations = Array.from(new Map(allStationsInCorridorGroup.map(s => [s.id, s])).values());
 
     logUsageEvent(req.user?.id, 'multi_stop_plan', {
