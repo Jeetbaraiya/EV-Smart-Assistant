@@ -96,7 +96,12 @@ const MultiStopPlanner = () => {
   };
 
   const handlePlanMultiStop = async (strategy = 'min_stops') => {
-    setPlannerLoading(true); setError('');
+    setPlannerLoading(true); 
+    setError('');
+    // Clear old plan and coordinates immediately so the map resets
+    setMultiStopPlan(null);
+    setRouteCoords({ origin: null, dest: null });
+
     try {
       const points = await parseMultiStopPoints();
       if (!points) { setError('Enter format like: Ahmedabad -> Udaipur -> Jaipur'); setPlannerLoading(false); return; }
