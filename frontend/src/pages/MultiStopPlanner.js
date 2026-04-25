@@ -361,7 +361,7 @@ const MultiStopPlanner = () => {
                                      <div style={{ background: '#fffbeb', padding: '1rem', borderRadius: '12px', border: '1px solid #fef3c7', marginBottom: '1rem' }}>
                                        <p style={{ color: '#b45309', fontSize: '0.9rem', fontWeight: 700, margin: '0 0 5px 0' }}>⚡ Recommended Stop:</p>
                                        <p style={{ color: '#1e293b', fontSize: '0.95rem', margin: 0 }}>
-                                         <strong>{multiStopPlan.recommendedStation.name}</strong> (~{multiStopPlan.recommendedStation.distanceFromStart} km from {failure.from})
+                                         <strong>{multiStopPlan.recommendedStation.name}</strong> (~{multiStopPlan.recommendedStation.distance} km from {multiStopPlan.recommendedStation.from})
                                        </p>
                                        <p style={{ color: '#64748b', fontSize: '0.85rem', marginTop: '8px' }}>
                                          Continue your journey after charging here.
@@ -412,7 +412,7 @@ const MultiStopPlanner = () => {
                                  <span style={{ color: '#b45309', fontWeight: 700 }}>
                                    ⚡ Recommended Charging Stop:
                                  </span>
-                                 <span className="badge badge-yellow" style={{ background: '#f59e0b', color: 'white' }}>~{recommended.distanceFromStart} km from {leg.from.label}</span>
+                                 <span className="badge badge-yellow" style={{ background: '#f59e0b', color: 'white' }}>~{recommended.distance} km from {recommended.from}</span>
                                </div>
                                <div style={{ marginTop: '5px', fontSize: '1rem', fontWeight: 600, color: '#1e293b' }}>
                                  {recommended.name}
@@ -492,12 +492,24 @@ const MultiStopPlanner = () => {
                      <div style={{ marginTop: '1.5rem' }}>
                         <h5 style={{ color: '#1e293b', marginBottom: '0.8rem', fontSize: '0.95rem' }}>📡 Potential Charging Points Nearby</h5>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                          {multiStopPlan.potentialStations.map((st, sIdx) => (
-                            <div key={sIdx} style={{ padding: '0.75rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '0.85rem' }}>
-                              <div style={{ fontWeight: 700, color: '#4f46e5' }}>⚡ {st.name}</div>
-                              <div style={{ color: '#64748b', fontSize: '0.75rem', marginTop: '2px' }}>{st.city || st.state || 'Available Station'}</div>
-                            </div>
-                          ))}
+                          {multiStopPlan.potentialStations.map((st, sIdx) => {
+                            const isRecommended = st.id === multiStopPlan.recommendedStation?.id;
+                            return (
+                              <div key={sIdx} style={{ 
+                                padding: '0.75rem', 
+                                background: isRecommended ? 'rgba(245, 158, 11, 0.1)' : '#f8fafc', 
+                                borderRadius: '8px', 
+                                border: isRecommended ? '1px solid #f59e0b' : '1px solid #e2e8f0', 
+                                fontSize: '0.85rem',
+                                position: 'relative'
+                              }}>
+                                <div style={{ fontWeight: 700, color: isRecommended ? '#b45309' : '#4f46e5' }}>
+                                  ⚡ {st.name} {isRecommended && <span style={{ fontSize: '0.7rem', color: '#f59e0b', marginLeft: '5px' }}>(Recommended)</span>}
+                                </div>
+                                <div style={{ color: '#64748b', fontSize: '0.75rem', marginTop: '2px' }}>{st.city || st.state || 'Available Station'}</div>
+                              </div>
+                            );
+                          })}
                         </div>
                      </div>
                    )}

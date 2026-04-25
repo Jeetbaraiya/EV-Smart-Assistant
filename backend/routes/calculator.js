@@ -625,13 +625,20 @@ router.post('/optimize-route', [
         const sLon = parseFloat(st.longitude);
         const dFromStart = haversineKm(originLat, originLon, sLat, sLon);
         
-        // Pick the station that gets us the farthest while remaining reachable
         if (dFromStart <= initialRangeKm && dFromStart > maxDistFromStart) {
           maxDistFromStart = dFromStart;
           recommendedStation = {
-            id: st.id, name: st.name, latitude: st.latitude, longitude: st.longitude,
-            power_kw: st.power_kw, status: st.status, source: st.source,
-            distanceFromStart: Math.round(dFromStart * 10) / 10
+            id: st.id, 
+            name: st.name, 
+            city: st.city || 'Highway / Nearby City',
+            distance: Math.round(dFromStart * 10) / 10,
+            from: originCoords.label || 'Origin',
+            to: destCoords.label || 'Destination',
+            lat: sLat, 
+            lng: sLon,
+            power_kw: st.power_kw, 
+            status: st.status, 
+            source: st.source
           };
         }
       });
