@@ -33,6 +33,27 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+
+  const handleEmergencySync = async () => {
+    if (!window.confirm('Sync all owner passwords to Owner@123?')) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/auth/emergency-sync-owners`, {
+        method: 'POST'
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert('✅ Success: ' + data.message);
+      } else {
+        alert('❌ Error: ' + (data.error || 'Sync failed'));
+      }
+    } catch (err) {
+      alert('❌ Network error: Check if backend is running.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -144,6 +165,23 @@ const Login = () => {
 
           <div className="auth-links">
             <p>Don't have an account yet? <Link to="/register">Create an account</Link></p>
+            <div style={{ marginTop: '1rem', borderTop: '1px solid #eee', paddingTop: '1rem' }}>
+              <button 
+                type="button" 
+                onClick={handleEmergencySync}
+                style={{
+                  background: 'none', 
+                  border: 'none', 
+                  color: '#6366f1', 
+                  cursor: 'pointer', 
+                  fontSize: '0.85rem', 
+                  fontWeight: '600',
+                  textDecoration: 'underline'
+                }}
+              >
+                Sync Owners (Emergency Recovery)
+              </button>
+            </div>
           </div>
         </div>
       </div>

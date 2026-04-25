@@ -680,5 +680,15 @@ router.delete('/delete-account', authenticate, (req, res) => {
   }
 });
 
+// Emergency Sync Owners (Temporary)
+router.post('/emergency-sync-owners', async (req, res) => {
+  const dbInstance = db.getDb();
+  const hash = await bcrypt.hash('Owner@123', 10);
+  dbInstance.run("UPDATE users SET password = ? WHERE role = 'owner'", [hash], function(err) {
+    if (err) return res.status(500).json({ error: 'Sync failed: ' + err.message });
+    res.json({ message: `Successfully synced ${this.changes} owner(s) to Owner@123` });
+  });
+});
+
 module.exports = router;
 
