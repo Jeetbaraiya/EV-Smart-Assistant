@@ -43,12 +43,14 @@ const BookingModal = ({ station, onClose, onBookingSuccess, getToken, isAuthenti
     setBookingTime('');
     fetchConnectors();
     fetchBookedSlots(istDate);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [station.id]);
 
   useEffect(() => {
     if (bookingDate) {
       fetchBookedSlots(bookingDate);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bookingDate]);
 
   const getIstDateStr = () => {
@@ -109,7 +111,6 @@ const BookingModal = ({ station, onClose, onBookingSuccess, getToken, isAuthenti
         
         const start = String(i).padStart(2, '0') + ':00';
         const endHour = i + 1;
-        const endStr = endHour === 24 ? '23:59' : String(endHour).padStart(2, '0') + ':00';
         
         const ampm = (h) => {
             const hour = h % 12 || 12;
@@ -454,7 +455,7 @@ const BookingModal = ({ station, onClose, onBookingSuccess, getToken, isAuthenti
                           <span className="summary-label">End Time</span>
                           <span className="summary-value">
                               🏁 {(() => {
-                                  const [h, m] = bookingTime.split(':').map(Number);
+                                  const [h] = bookingTime.split(':').map(Number);
                                   const endH = h + 1;
                                   const period = endH >= 12 && endH < 24 ? 'PM' : (endH >= 24 ? 'PM' : 'AM');
                                   const h12 = endH % 12 || 12;

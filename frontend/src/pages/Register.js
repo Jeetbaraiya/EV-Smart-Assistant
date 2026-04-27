@@ -97,7 +97,7 @@ const Register = () => {
       if (result.user?.role === 'owner') {
         navigate('/owner/dashboard');
       } else {
-        navigate('/');
+        navigate('/stations');
       }
     } else {
       setError(result.error);

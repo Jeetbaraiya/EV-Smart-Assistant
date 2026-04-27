@@ -2,9 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import './Dashboard.css';
 
-const IconStation = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 17a4 4 0 0 0 8 0c0-4-8-8-8-8s-8 4-8 8a4 4 0 0 0 8 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="10" y1="11" x2="14" y2="11"/></svg>
-);
+
 
 const CONNECTOR_TYPES = [
   'CCS2', 'Type 2', 'CHAdeMO', 'Bharat DC-001',
@@ -12,7 +10,7 @@ const CONNECTOR_TYPES = [
 ];
 
 const OwnerStations = () => {
-  const { getToken, user } = useAuth();
+  const { getToken } = useAuth();
   const [stations, setStations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -31,6 +29,7 @@ const OwnerStations = () => {
 
   useEffect(() => {
     fetchMyStations();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchMyStations = async () => {
@@ -281,7 +280,7 @@ const OwnerStations = () => {
                   <label>Initial Status *</label>
                   <select name="availability" value={formData.availability} onChange={handleChange} required>
                     <option value="available">🟢 Active & Online</option>
-                    <option value="unavailable">🔴 Out of Order</option>
+                    <option value="unavailable">🔴 Unavailable</option>
                     <option value="maintenance">🟠 Under Service</option>
                   </select>
                 </div>

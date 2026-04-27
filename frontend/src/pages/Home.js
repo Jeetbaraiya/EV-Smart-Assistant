@@ -1,12 +1,25 @@
 import React, { useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
 import './Home.css';
 import { useAuth } from '../context/AuthContext';
 
 const Home = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user, loading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading && isAuthenticated && user) {
+      if (user.role === 'admin') {
+        navigate('/admin/dashboard', { replace: true });
+      } else if (user.role === 'owner') {
+        navigate('/owner/dashboard', { replace: true });
+      } else {
+        navigate('/stations', { replace: true });
+      }
+    }
+  }, [loading, isAuthenticated, user, navigate]);
 
   useEffect(() => {
     AOS.init({

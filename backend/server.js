@@ -212,6 +212,46 @@ db.init()
 
     server.listen(PORT, () => {
       console.log(`Server (HTTP + WS) is running on port ${PORT}`);
+      
+      // Auto-migrate India stations to owners
+      setTimeout(() => {
+        const dbInstance = db.getDb();
+        dbInstance.all('SELECT id FROM users WHERE role = "owner"', [], (err, owners) => {
+          if (err || owners.length === 0) return;
+          
+          dbInstance.all('SELECT id FROM charging_stations WHERE name = "NH-751 Fast Charger Bagodara"', [], (err, existing) => {
+            if (existing && existing.length > 0) return; // already migrated
+            
+            const stations = [
+              { name: 'NH-751 Fast Charger Bagodara', city: 'Bagodara', state: 'Gujarat', latitude: 22.4345, longitude: 72.1345, power_kw: 60, connector_type: 'CCS2' },
+              { name: 'Dhandhuka Highway Hub', city: 'Dhandhuka', state: 'Gujarat', latitude: 22.3789, longitude: 71.9856, power_kw: 30, connector_type: 'CCS2' },
+              { name: 'Bavla EV Point', city: 'Bavla', state: 'Gujarat', latitude: 22.8345, longitude: 72.3678, power_kw: 50, connector_type: 'CCS2' },
+              { name: 'Limbdi Highway Plaza Charging', city: 'Limbdi', state: 'Gujarat', latitude: 22.5678, longitude: 71.8901, power_kw: 120, connector_type: 'CCS2' },
+              { name: 'Chotila Hill View EV Hub', city: 'Chotila', state: 'Gujarat', latitude: 22.4234, longitude: 71.1890, power_kw: 60, connector_type: 'CCS2' },
+              { name: 'Gondal Bypass Fast DC', city: 'Gondal', state: 'Gujarat', latitude: 21.9678, longitude: 70.7890, power_kw: 50, connector_type: 'CCS2' },
+              { name: 'Jetpur Junction EV Stop', city: 'Jetpur', state: 'Gujarat', latitude: 21.7543, longitude: 70.6234, power_kw: 60, connector_type: 'CCS2' },
+              { name: 'Junagadh Gateway Charging', city: 'Junagadh', state: 'Gujarat', latitude: 21.5234, longitude: 70.4567, power_kw: 30, connector_type: 'CCS2' },
+              { name: 'Veraval Coast EV Park', city: 'Veraval', state: 'Gujarat', latitude: 20.9123, longitude: 70.3678, power_kw: 60, connector_type: 'CCS2' },
+              { name: 'Ahmedabad Riverfront Mall EV', city: 'Ahmedabad', state: 'Gujarat', latitude: 23.0225, longitude: 72.5714, power_kw: 50, connector_type: 'CCS2' },
+              { name: 'C.G. Road Charging Point', city: 'Ahmedabad', state: 'Gujarat', latitude: 23.0333, longitude: 72.5621, power_kw: 25, connector_type: 'CCS2' }
+            ];
+
+            stations.forEach((s, i) => {
+              const ownerId = owners[i % owners.length].id;
+              dbInstance.run(
+                'INSERT INTO charging_stations (owner_id, name, address, city, state, latitude, longitude, power_kw, connector_type, is_verified, availability, slots_total, slots_available) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, "available", 4, 4)',
+                [ownerId, s.name, s.name, s.city, s.state, s.latitude, s.longitude, s.power_kw, s.connector_type],
+                function(err) {
+                  if (!err) {
+                    dbInstance.run('INSERT INTO connectors (station_id, type, power, price_per_kwh, status) VALUES (?, ?, ?, 15.0, "available")', [this.lastID, s.connector_type, s.power_kw]);
+                  }
+                }
+              );
+            });
+            console.log('Successfully divided 11 national stations among', owners.length, 'owners!');
+          });
+        });
+      }, 2000);
     });
   })
   .catch((err) => {

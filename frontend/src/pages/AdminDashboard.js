@@ -183,9 +183,6 @@ const AdminDashboard = () => {
                           {stats.totalStations || 0}
                         </div>
                         <div style={{ fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#64748b', marginTop: '0.25rem' }}>Network Points</div>
-                        <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.35rem' }}>
-                          {stats.dbStations || 0} local 
-                        </div>
                       </div>
                       <div style={{
                         width: 48, height: 48, borderRadius: '14px',
