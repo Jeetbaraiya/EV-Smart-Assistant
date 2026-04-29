@@ -15,8 +15,6 @@ const Home = () => {
         navigate('/admin/dashboard', { replace: true });
       } else if (user.role === 'owner') {
         navigate('/owner/dashboard', { replace: true });
-      } else {
-        navigate('/stations', { replace: true });
       }
     }
   }, [loading, isAuthenticated, user, navigate]);
