@@ -114,6 +114,14 @@ const AdminDashboard = () => {
               background: '#f0fdf4', color: '#16a34a', border: '1px solid #bbf7d0',
               padding: '0.35rem 0.85rem', borderRadius: '999px', fontSize: '0.78rem', fontWeight: 700
             }}>● Live</span>
+            <button 
+              onClick={() => window.location.href = '/admin/bookings'}
+              style={{
+                background: '#fff', color: '#6C63FF', border: '1.5px solid #6C63FF',
+                padding: '0.6rem 1.25rem', borderRadius: '12px', fontWeight: 600,
+                cursor: 'pointer', fontSize: '0.875rem'
+              }}
+            >📋 Bookings</button>
             <button onClick={() => fetchData()} style={{
               background: 'linear-gradient(135deg, #6C63FF, #5a52d5)',
               color: 'white', border: 'none', padding: '0.6rem 1.25rem',
@@ -123,6 +131,7 @@ const AdminDashboard = () => {
             }}>🔄 Refresh</button>
           </div>
         </header>
+
 
         {error && <div className="error-message">{error}</div>}
 
@@ -267,7 +276,7 @@ const AdminDashboard = () => {
                   <div className="stat-card" style={{ borderTop: 'none' }}>
                     <h4 style={{ margin: '0 0 1.25rem', fontWeight: 700, color: '#1e293b', fontSize: '1rem' }}>📈 Usage Trend</h4>
                     <ResponsiveContainer width="100%" height={260}>
-                      <BarChart data={stats.routeUsageTrend} barSize={28}>
+                      <BarChart data={stats.routeUsageTrend || []} barSize={28}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                         <XAxis 
                           dataKey="day" 

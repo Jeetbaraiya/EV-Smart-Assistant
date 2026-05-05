@@ -430,6 +430,46 @@
   background: #e2e8f0; color: #1e293b;
 }
 
+/* ── Admin Dashboard Layouts ────────────────────────────── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  transition: transform 0.2s;
+}
+.stat-card:hover {
+  transform: translateY(-4px);
+}
+
+.admin-dashboard-row {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.admin-dashboard-chart-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+@media (max-width: 1024px) {
+  .admin-dashboard-row, .admin-dashboard-chart-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+
 /* ── Page Header ───────────────────────────────────────── */
 .admin-page-header {
   display: flex;
@@ -520,10 +560,11 @@
 }
 
 .admin-table tbody td {
-  padding: 1rem 1.25rem;
+  padding: 1.1rem 1.25rem;
   font-size: 0.9rem;
   color: #334155;
   vertical-align: middle;
+  border-bottom: 1px solid #f1f5f9;
 }
 
 /* ── Status Badges ─────────────────────────────────────── */

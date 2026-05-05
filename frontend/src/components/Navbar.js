@@ -180,6 +180,10 @@ const Navbar = () => {
                   <span className="mobile-top-icon"><IconStation /></span>
                   <span>Stations</span>
                 </NavLink>
+                <NavLink to="/admin/bookings" className="mobile-top-link" onClick={() => setIsSidebarOpen(false)}>
+                  <span className="mobile-top-icon"><IconCalendar /></span>
+                  <span>Bookings</span>
+                </NavLink>
               </>
             )}
             {isOwner && (
@@ -255,6 +259,10 @@ const Navbar = () => {
               <NavLink to="/admin/stations" className="sidebar-link" title="Stations Management" onClick={() => setIsSidebarOpen(false)}>
                 <span className="nav-icon"><IconStation /></span>
                 <span>Stations</span>
+              </NavLink>
+              <NavLink to="/admin/bookings" className="sidebar-link" title="All Bookings" onClick={() => setIsSidebarOpen(false)}>
+                <span className="nav-icon"><IconCalendar /></span>
+                <span>All Bookings</span>
               </NavLink>
             </>
           )}

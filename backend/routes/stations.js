@@ -157,16 +157,24 @@ router.get('/:id', (req, res) => {
       if (!station) {
         return res.status(404).json({ error: 'Station not found' });
       }
-      res.json({
-        station: {
-          ...station,
-          avg_rating: station.avg_rating ? parseFloat(station.avg_rating) : null,
-          review_count: station.review_count ? parseInt(station.review_count, 10) : 0
+      // Also fetch connectors for this station
+      dbInstance.all('SELECT * FROM connectors WHERE station_id = ?', [req.params.id], (err2, connectors) => {
+        if (err2) {
+          return res.status(500).json({ error: 'Error fetching connectors' });
         }
+        res.json({
+          station: {
+            ...station,
+            avg_rating: station.avg_rating ? parseFloat(station.avg_rating) : null,
+            review_count: station.review_count ? parseInt(station.review_count, 10) : 0,
+            connectors: connectors || []
+          }
+        });
       });
     }
   );
 });
+
 
 // Get reviews for a station (db station numeric id or india_x id)
 router.get('/:id/reviews', (req, res) => {
@@ -374,23 +382,7 @@ router.put('/:id', authenticate, authorize('owner', 'admin'), [
   }
 });
 
-// Delete station (owner of station or admin)
-router.get('/:id', (req, res) => {
-    const { id } = req.params;
-    const dbInstance = db.getDb();
 
-    dbInstance.get('SELECT * FROM charging_stations WHERE id = ?', [id], (err, station) => {
-        if (err) return res.status(500).json({ error: 'Database error' });
-        if (!station) return res.status(404).json({ error: 'Station not found' });
-
-        // Fetch connectors for this station
-        dbInstance.all('SELECT * FROM connectors WHERE station_id = ?', [id], (err, connectors) => {
-            if (err) return res.status(500).json({ error: 'Error fetching connectors' });
-            station.connectors = connectors || [];
-            res.json({ station });
-        });
-    });
-});
 
 router.delete('/:id', authenticate, authorize('owner', 'admin'), (req, res) => {
   const dbInstance = db.getDb();

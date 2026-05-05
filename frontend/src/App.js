@@ -15,6 +15,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import AdminUsers from './pages/AdminUsers';
 import AdminOwners from './pages/AdminOwners';
 import AdminStations from './pages/AdminStations';
+import AdminBookings from './pages/AdminBookings';
 import OwnerStations from './pages/OwnerStations';
 import OwnerBookings from './pages/OwnerBookings';
 import MultiStopPlanner from './pages/MultiStopPlanner';
@@ -98,6 +99,14 @@ function AppLayout() {
             element={
               <PrivateRoute requiredRole="admin">
                 <AdminStations />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/admin/bookings"
+            element={
+              <PrivateRoute requiredRole="admin">
+                <AdminBookings />
               </PrivateRoute>
             }
           />

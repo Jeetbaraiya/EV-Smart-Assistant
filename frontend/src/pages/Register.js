@@ -17,27 +17,6 @@ const EyeOffIcon = () => (
   </svg>
 );
 
-// EV Driver icon — electric car
-const IconEVCar = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M5 17H3a2 2 0 0 1-2-2v-4l2-5h14l2 5v4a2 2 0 0 1-2 2h-2"/>
-    <circle cx="7" cy="17" r="2"/>
-    <circle cx="17" cy="17" r="2"/>
-    <path d="M9 9h1l1-2h2l1 2h1"/>
-    <line x1="12" y1="5" x2="12" y2="9"/>
-  </svg>
-);
-
-// Charging Station icon — for Owner
-const IconChargingStation = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="2" y="2" width="13" height="20" rx="2"/>
-    <path d="M15 7h2a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-2"/>
-    <line x1="7" y1="22" x2="10" y2="22"/>
-    <line x1="8.5" y1="16" x2="8.5" y2="22"/>
-    <path d="M6 8h5l-2 4h4l-5 6v-4H6l2-4H6V8z"/>
-  </svg>
-);
 
 const Register = () => {
   const [formData, setFormData] = useState({

@@ -226,7 +226,7 @@ router.get('/stats', (req, res) => {
 
   const stats = {};
   let completed = 0;
-  const total = 10;
+  const total = 11;
 
   const checkDone = () => {
     completed++;
@@ -284,6 +284,24 @@ router.get('/stats', (req, res) => {
   // DB power capacity (verified owner stations)
   dbInstance.get('SELECT SUM(power_kw) as total FROM charging_stations WHERE is_verified = 1', [], (err, result) => {
     if (!err) stats.dbPowerCapacity = result.total || 0;
+    checkDone();
+  });
+
+  // Global booking counts for summary tiles
+  const nowUtc = new Date().toISOString().slice(0, 19).replace('T', ' ');
+  dbInstance.get(`
+    SELECT 
+      COALESCE(SUM(CASE WHEN LOWER(status) = 'confirmed' AND (end_time IS NULL OR end_time >= ?) THEN 1 ELSE 0 END), 0) as confirmed,
+      COALESCE(SUM(CASE WHEN LOWER(status) = 'completed' OR (LOWER(status) = 'confirmed' AND end_time < ?) THEN 1 ELSE 0 END), 0) as completed
+    FROM bookings
+  `, [nowUtc, nowUtc], (err, result) => {
+    if (!err && result) {
+      stats.confirmedBookings = result.confirmed || 0;
+      stats.completedBookings = result.completed || 0;
+    } else {
+      stats.confirmedBookings = 0;
+      stats.completedBookings = 0;
+    }
     checkDone();
   });
 
@@ -360,6 +378,151 @@ router.get('/stats', (req, res) => {
           checkDone();
         }
       );
+    }
+  );
+});
+
+// ── GET /admin/bookings — All Bookings (Global Admin View) ────────────────
+router.get('/bookings', (req, res) => {
+  const dbInstance = db.getDb();
+  const { date, station_id, status, search, sort = 'date_desc', page = 1, limit = 20 } = req.query;
+
+  const pageNum  = Math.max(1, parseInt(page)  || 1);
+  const limitNum = Math.min(100, Math.max(1, parseInt(limit) || 20));
+  const offset   = (pageNum - 1) * limitNum;
+
+  const conditions = [];
+  const params     = [];
+
+  if (date) {
+    conditions.push("DATE(b.start_time) = ?");
+    params.push(date);
+  }
+  if (station_id) {
+    conditions.push("b.station_id = ?");
+    params.push(station_id);
+  }
+  if (status) {
+    conditions.push("LOWER(b.status) = LOWER(?)");
+    params.push(status);
+  }
+  if (search) {
+    conditions.push("(u.username LIKE ? OR u.email LIKE ? OR cs.name LIKE ?)");
+    const like = `%${search}%`;
+    params.push(like, like, like);
+  }
+
+  const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+
+  // Determine ORDER BY
+  const sortMap = {
+    date_desc:   'b.start_time DESC',
+    date_asc:    'b.start_time ASC',
+    status:      'b.status ASC, b.start_time DESC',
+    station:     'cs.name ASC, b.start_time DESC',
+  };
+  const orderBy = sortMap[sort] || 'b.start_time DESC';
+
+  // Count query for pagination
+  const countQuery = `
+    SELECT COUNT(*) as total
+    FROM bookings b
+    LEFT JOIN users u            ON b.user_id    = u.id
+    LEFT JOIN charging_stations cs ON b.station_id = cs.id
+    ${where}
+  `;
+
+  dbInstance.get(countQuery, params, (err, countRow) => {
+    if (err) {
+      console.error('[admin/bookings] Count error:', err);
+      return res.status(500).json({ error: 'Database error', details: err.message });
+    }
+
+    const total = countRow?.total || 0;
+
+    const nowUtc = new Date().toISOString().slice(0, 19).replace('T', ' ');
+    const dataQuery = `
+      SELECT
+        b.*,
+        u.username   AS user_name,
+        u.email      AS user_email,
+        cs.name      AS station_name,
+        cs.city      AS station_city,
+        cs.state     AS station_state,
+        CASE 
+          WHEN LOWER(b.status) = 'confirmed' AND b.end_time < ? THEN 'completed'
+          ELSE LOWER(b.status)
+        END as display_status
+      FROM bookings b
+      LEFT JOIN users u             ON b.user_id    = u.id
+      LEFT JOIN charging_stations cs ON b.station_id = cs.id
+      ${where}
+      ORDER BY ${orderBy}
+      LIMIT ? OFFSET ?
+    `;
+
+    dbInstance.all(dataQuery, [nowUtc, ...params, limitNum, offset], (err2, bookings) => {
+      if (err2) {
+        console.error('[admin/bookings] Data error:', err2);
+        return res.status(500).json({ error: 'Database error', details: err2.message });
+      }
+      res.json({
+        bookings: bookings || [],
+        pagination: {
+          total,
+          page:       pageNum,
+          limit:      limitNum,
+          totalPages: Math.ceil(total / limitNum),
+        },
+      });
+    });
+  });
+});
+
+// ── GET /admin/bookings/stats — Summary analytics ─────────────────────────
+router.get('/bookings/stats', (req, res) => {
+  const dbInstance = db.getDb();
+
+  const query = `
+    SELECT 
+      COUNT(*) as total,
+      COALESCE(SUM(CASE WHEN LOWER(status) = 'confirmed' AND (end_time IS NULL OR TIMESTAMPDIFF(SECOND, UTC_TIMESTAMP(), end_time) >= 0) THEN 1 ELSE 0 END), 0) as confirmed,
+      COALESCE(SUM(CASE WHEN LOWER(status) = 'cancelled' THEN 1 ELSE 0 END), 0) as cancelled,
+      COALESCE(SUM(CASE WHEN LOWER(status) = 'completed' OR (LOWER(status) = 'confirmed' AND TIMESTAMPDIFF(SECOND, UTC_TIMESTAMP(), end_time) < 0) THEN 1 ELSE 0 END), 0) as completed
+    FROM bookings
+  `;
+
+  dbInstance.get(query, [], (err, row) => {
+    if (err) {
+      console.error('[admin/bookings/stats] Error:', err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+    
+    console.log('[admin/bookings/stats] Calculated stats:', row);
+
+    const stats = {
+      total:     row?.total || 0,
+      confirmed: row?.confirmed || 0,
+      cancelled: row?.cancelled || 0,
+      completed: row?.completed || 0
+    };
+    
+    res.json({ stats });
+  });
+});
+
+// ── GET /admin/bookings/stations-list — Distinct stations that have bookings ──
+router.get('/bookings/stations-list', (req, res) => {
+  const dbInstance = db.getDb();
+  dbInstance.all(
+    `SELECT DISTINCT b.station_id, COALESCE(cs.name, b.station_id) as station_name
+     FROM bookings b
+     LEFT JOIN charging_stations cs ON b.station_id = cs.id
+     ORDER BY station_name ASC`,
+    [],
+    (err, rows) => {
+      if (err) return res.status(500).json({ error: 'Database error' });
+      res.json({ stations: rows || [] });
     }
   );
 });
