@@ -233,36 +233,36 @@ input[type="range"] {
   to { opacity: 1; transform: translateY(0); }
 }
 
-.summary-item {
+.booking-summary-box .summary-item {
   display: flex;
   justify-content: space-between;
   margin-bottom: 0.25rem;
   font-size: 16px !important; /* Fixed to 16px */
 }
 
-.summary-label {
+.booking-summary-box .summary-label {
   color: #64748b;
   font-weight: 500;
 }
 
-.summary-value {
+.booking-summary-box .summary-value {
   color: #1e293b;
   font-weight: 600;
   font-size: 16px !important; /* Fixed to 16px */
 }
 
-.summary-divider {
+.booking-summary-box .summary-divider {
   height: 1px;
   background: #e2e8f0;
   margin: 0.5rem 0; /* Reduced from 0.75rem */
 }
 
-.summary-item.highlight {
+.booking-summary-box .summary-item.highlight {
   margin-bottom: 0;
   align-items: center;
 }
 
-.summary-item.highlight .summary-label {
+.booking-summary-box .summary-item.highlight .summary-label {
   color: #0f172a;
   font-weight: 800;
   font-size: 0.8rem; /* Reduced from 0.85rem */
@@ -567,15 +567,16 @@ input[type="range"] {
     padding: 0.85rem;
   }
 
-  .summary-item {
+  .booking-summary-box .summary-item {
     font-size: 16px !important;
   }
-  .summary-value {
+  .booking-summary-box .summary-value {
     font-size: 16px !important;
   }
-  .price-tag {
+  .booking-summary-box .price-tag {
     font-size: 16px !important;
   }
+
 
   .time-slots-container {
     grid-template-columns: repeat(3, 1fr);
@@ -653,13 +654,13 @@ input[type="range"] {
     font-size: 0.9rem;
   }
 
-  .summary-item {
+  .booking-summary-box .summary-item {
     font-size: 16px !important;
   }
-  .summary-value {
+  .booking-summary-box .summary-value {
     font-size: 16px !important;
   }
-  .price-tag {
+  .booking-summary-box .price-tag {
     font-size: 16px !important;
   }
 

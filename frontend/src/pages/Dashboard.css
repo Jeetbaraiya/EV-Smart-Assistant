@@ -1763,10 +1763,11 @@
   gap: 1.5rem;
 }
 
-.summary-item {
+.stat-card--summary .summary-item {
   flex: 1;
   min-width: 100px;
   text-align: center;
+  display: block; /* Override display: flex from BookingModal.css */
 }
 
 .summary-value {
