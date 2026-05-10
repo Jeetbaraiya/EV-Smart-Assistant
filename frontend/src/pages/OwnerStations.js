@@ -347,13 +347,13 @@ const OwnerStations = () => {
                   (s.state || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                   (s.address || '').toLowerCase().includes(searchTerm.toLowerCase())
                 ).map((s) => (
-                  <tr key={s.id}>
+                  <tr key={s.id} style={hoveredRatingStation === s.id ? { position: 'relative', zIndex: 50 } : {}}>
                     <td>
                       <div style={{ fontWeight: 800, color: '#1e293b' }}>{s.name}</div>
                       <div style={{ fontSize: '0.7rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.4rem' }}>UID: {s.id}</div>
                       {s.avg_rating ? (
                         <div 
-                          style={{ position: 'relative', display: 'inline-block', fontSize: '0.8rem', fontWeight: 700, color: '#475569', cursor: 'help', background: '#f8fafc', padding: '0.2rem 0.5rem', borderRadius: '4px' }}
+                          style={{ position: 'relative', zIndex: hoveredRatingStation === s.id ? 50 : 'auto', display: 'inline-block', fontSize: '0.8rem', fontWeight: 700, color: '#475569', cursor: 'help', background: '#f8fafc', padding: '0.2rem 0.5rem', borderRadius: '4px' }}
                           onMouseEnter={() => {
                             setHoveredRatingStation(s.id);
                             fetchReviewsForHover(s.id);

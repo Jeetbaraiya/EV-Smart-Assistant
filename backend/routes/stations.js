@@ -139,7 +139,172 @@ router.get('/status', (req, res) => {
   );
 });
 
+// Get owner's stations
+router.get('/owner/my-stations', authenticate, authorize('owner', 'admin'), (req, res) => {
+  const dbInstance = db.getDb();
+  dbInstance.all(
+    `SELECT cs.*, 
+      (SELECT ROUND(AVG(sr.rating), 1) FROM station_reviews sr WHERE sr.station_id = CAST(cs.id AS CHAR) COLLATE utf8mb4_unicode_ci) as avg_rating,
+      (SELECT COUNT(*) FROM station_reviews sr WHERE sr.station_id = CAST(cs.id AS CHAR) COLLATE utf8mb4_unicode_ci) as review_count
+     FROM charging_stations cs 
+     WHERE cs.owner_id = ? 
+     ORDER BY cs.created_at DESC`,
+    [req.user.id],
+    (err, stations) => {
+      if (err) {
+        return res.status(500).json({ error: 'Database error' });
+      }
+      const formatted = (stations || []).map(st => ({
+        ...st,
+        avg_rating: st.avg_rating ? parseFloat(st.avg_rating) : null,
+        review_count: st.review_count ? parseInt(st.review_count, 10) : 0
+      }));
+      res.json({ stations: formatted });
+    }
+  );
+});
+
+// Get owner's station reviews
+router.get('/owner/reviews', authenticate, authorize('owner', 'admin'), (req, res) => {
+  const dbInstance = db.getDb();
+  const query = `
+    SELECT sr.id, sr.rating, sr.comment, sr.created_at, u.username, cs.name as station_name
+    FROM station_reviews sr
+    JOIN charging_stations cs ON sr.station_id = cs.id
+    JOIN users u ON sr.user_id = u.id
+    WHERE cs.owner_id = ?
+    ORDER BY sr.created_at DESC
+  `;
+  dbInstance.all(query, [req.user.id], (err, reviews) => {
+    if (err) {
+      console.error('Error fetching owner reviews:', err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+    
+    let averageRating = 0;
+    if (reviews && reviews.length > 0) {
+      const sum = reviews.reduce((acc, rev) => acc + (Number(rev.rating) || 0), 0);
+      averageRating = (sum / reviews.length).toFixed(1);
+    }
+    
+    res.json({ reviews: reviews || [], averageRating });
+  });
+});
+
+// Get owner dashboard stats (real-time revenue, bookings, chart data)
+router.get('/owner/stats', authenticate, authorize('owner', 'admin'), (req, res) => {
+  const dbInstance = db.getDb();
+  const ownerId = req.user.id;
+
+  // 1. Get Monthly Revenue & Total Bookings for this month
+  const monthlyStatsSql = `
+    SELECT 
+      SUM(CASE 
+        WHEN LOWER(b.status) = 'completed' THEN b.total_price 
+        WHEN LOWER(b.status) = 'confirmed' AND b.end_time < UTC_TIMESTAMP() THEN b.total_price
+        ELSE 0 
+      END) as monthly_revenue,
+      COUNT(CASE WHEN LOWER(b.status) = 'confirmed' AND b.end_time >= UTC_TIMESTAMP() THEN 1 END) as total_bookings
+    FROM bookings b
+    JOIN charging_stations cs ON b.station_id = cs.id
+    WHERE cs.owner_id = ? 
+    AND b.created_at >= DATE_FORMAT(UTC_TIMESTAMP(), '%Y-%m-01')
+  `;
+
+  // 2. Get 14-day trend for charts
+  const trendSql = `
+    SELECT 
+      DATE_FORMAT(b.created_at, '%b %d') as label,
+      SUM(CASE 
+        WHEN LOWER(b.status) = 'completed' THEN b.total_price 
+        WHEN LOWER(b.status) = 'confirmed' AND b.end_time < UTC_TIMESTAMP() THEN b.total_price
+        ELSE 0 
+      END) as revenue,
+      COUNT(b.id) as usage_count
+    FROM bookings b
+    JOIN charging_stations cs ON b.station_id = cs.id
+    WHERE cs.owner_id = ?
+    AND b.created_at >= DATE_SUB(UTC_TIMESTAMP(), INTERVAL 14 DAY)
+    GROUP BY DATE(b.created_at)
+    ORDER BY DATE(b.created_at) ASC
+  `;
+
+  dbInstance.get(monthlyStatsSql, [ownerId], (err, stats) => {
+    if (err) return res.status(500).json({ error: 'Stats error', details: err.message });
+
+    dbInstance.all(trendSql, [ownerId], (err, trend) => {
+      if (err) return res.status(500).json({ error: 'Trend error', details: err.message });
+
+      res.json({
+        monthlyRevenue: stats.monthly_revenue || 0,
+        totalBookings: stats.total_bookings || 0,
+        chartData: trend || []
+      });
+    });
+  });
+});
+
+// Search stations by location (find nearest)
+router.get('/search/nearby', (req, res) => {
+  const { lat, lng, radius = 50 } = req.query; // radius in km
+
+  if (!lat || !lng) {
+    return res.status(400).json({ error: 'Latitude and longitude are required' });
+  }
+
+  const userLat = parseFloat(lat);
+  const userLng = parseFloat(lng);
+  const radiusKm = parseFloat(radius);
+
+  if (isNaN(userLat) || isNaN(userLng) || isNaN(radiusKm)) {
+    return res.status(400).json({ error: 'Invalid coordinates or radius' });
+  }
+
+  const dbInstance = db.getDb();
+  dbInstance.all(
+    `SELECT cs.*, u.username as owner_name 
+     FROM charging_stations cs 
+     JOIN users u ON cs.owner_id = u.id 
+     WHERE cs.is_verified = 1 
+     AND cs.latitude IS NOT NULL 
+     AND cs.longitude IS NOT NULL`,
+    (err, stations) => {
+      if (err) {
+        return res.status(500).json({ error: 'Database error' });
+      }
+
+      // Calculate distance using Haversine formula
+      const R = 6371; // Earth's radius in km
+      const stationsWithDistance = stations.map(station => {
+        const dLat = (station.latitude - userLat) * Math.PI / 180;
+        const dLng = (station.longitude - userLng) * Math.PI / 180;
+        const a = 
+          Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+          Math.cos(userLat * Math.PI / 180) * Math.cos(station.latitude * Math.PI / 180) *
+          Math.sin(dLng / 2) * Math.sin(dLng / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        const distance = R * c;
+
+        return { ...station, distance: Math.round(distance * 10) / 10 };
+      });
+
+      // Filter by radius and sort by distance
+      const nearbyStations = stationsWithDistance
+        .filter(s => s.distance <= radiusKm)
+        .sort((a, b) => a.distance - b.distance);
+
+      res.json({
+        stations: nearbyStations,
+        total: nearbyStations.length,
+        location: { lat: userLat, lng: userLng },
+        radius: radiusKm
+      });
+    }
+  );
+});
+
 // Get station by ID
+
 router.get('/:id', (req, res) => {
   const dbInstance = db.getDb();
   dbInstance.get(
@@ -409,169 +574,4 @@ router.delete('/:id', authenticate, authorize('owner', 'admin'), (req, res) => {
   });
 });
 
-// Get owner's stations
-router.get('/owner/my-stations', authenticate, authorize('owner', 'admin'), (req, res) => {
-  const dbInstance = db.getDb();
-  dbInstance.all(
-    `SELECT cs.*, 
-      (SELECT ROUND(AVG(sr.rating), 1) FROM station_reviews sr WHERE sr.station_id = CAST(cs.id AS CHAR) COLLATE utf8mb4_unicode_ci) as avg_rating,
-      (SELECT COUNT(*) FROM station_reviews sr WHERE sr.station_id = CAST(cs.id AS CHAR) COLLATE utf8mb4_unicode_ci) as review_count
-     FROM charging_stations cs 
-     WHERE cs.owner_id = ? 
-     ORDER BY cs.created_at DESC`,
-    [req.user.id],
-    (err, stations) => {
-      if (err) {
-        return res.status(500).json({ error: 'Database error' });
-      }
-      const formatted = (stations || []).map(st => ({
-        ...st,
-        avg_rating: st.avg_rating ? parseFloat(st.avg_rating) : null,
-        review_count: st.review_count ? parseInt(st.review_count, 10) : 0
-      }));
-      res.json({ stations: formatted });
-    }
-  );
-});
-
-// Get owner's station reviews
-router.get('/owner/reviews', authenticate, authorize('owner', 'admin'), (req, res) => {
-  const dbInstance = db.getDb();
-  const query = `
-    SELECT sr.id, sr.rating, sr.comment, sr.created_at, u.username, cs.name as station_name
-    FROM station_reviews sr
-    JOIN charging_stations cs ON sr.station_id = cs.id
-    JOIN users u ON sr.user_id = u.id
-    WHERE cs.owner_id = ?
-    ORDER BY sr.created_at DESC
-  `;
-  dbInstance.all(query, [req.user.id], (err, reviews) => {
-    if (err) {
-      console.error('Error fetching owner reviews:', err);
-      return res.status(500).json({ error: 'Database error' });
-    }
-    
-    let averageRating = 0;
-    if (reviews && reviews.length > 0) {
-      const sum = reviews.reduce((acc, rev) => acc + (Number(rev.rating) || 0), 0);
-      averageRating = (sum / reviews.length).toFixed(1);
-    }
-    
-    res.json({ reviews: reviews || [], averageRating });
-  });
-});
-
-// Get owner dashboard stats (real-time revenue, bookings, chart data)
-router.get('/owner/stats', authenticate, authorize('owner', 'admin'), (req, res) => {
-  const dbInstance = db.getDb();
-  const ownerId = req.user.id;
-
-  // 1. Get Monthly Revenue & Total Bookings for this month
-  const monthlyStatsSql = `
-    SELECT 
-      SUM(CASE 
-        WHEN LOWER(b.status) = 'completed' THEN b.total_price 
-        WHEN LOWER(b.status) = 'confirmed' AND b.end_time < UTC_TIMESTAMP() THEN b.total_price
-        ELSE 0 
-      END) as monthly_revenue,
-      COUNT(CASE WHEN LOWER(b.status) = 'confirmed' AND b.end_time >= UTC_TIMESTAMP() THEN 1 END) as total_bookings
-    FROM bookings b
-    JOIN charging_stations cs ON b.station_id = cs.id
-    WHERE cs.owner_id = ? 
-    AND b.created_at >= DATE_FORMAT(UTC_TIMESTAMP(), '%Y-%m-01')
-  `;
-
-  // 2. Get 14-day trend for charts
-  const trendSql = `
-    SELECT 
-      DATE_FORMAT(b.created_at, '%b %d') as label,
-      SUM(CASE 
-        WHEN LOWER(b.status) = 'completed' THEN b.total_price 
-        WHEN LOWER(b.status) = 'confirmed' AND b.end_time < UTC_TIMESTAMP() THEN b.total_price
-        ELSE 0 
-      END) as revenue,
-      COUNT(b.id) as usage_count
-    FROM bookings b
-    JOIN charging_stations cs ON b.station_id = cs.id
-    WHERE cs.owner_id = ?
-    AND b.created_at >= DATE_SUB(UTC_TIMESTAMP(), INTERVAL 14 DAY)
-    GROUP BY DATE(b.created_at)
-    ORDER BY DATE(b.created_at) ASC
-  `;
-
-  dbInstance.get(monthlyStatsSql, [ownerId], (err, stats) => {
-    if (err) return res.status(500).json({ error: 'Stats error', details: err.message });
-
-    dbInstance.all(trendSql, [ownerId], (err, trend) => {
-      if (err) return res.status(500).json({ error: 'Trend error', details: err.message });
-
-      res.json({
-        monthlyRevenue: stats.monthly_revenue || 0,
-        totalBookings: stats.total_bookings || 0,
-        chartData: trend || []
-      });
-    });
-  });
-});
-
-// Search stations by location (find nearest)
-router.get('/search/nearby', (req, res) => {
-  const { lat, lng, radius = 50 } = req.query; // radius in km
-
-  if (!lat || !lng) {
-    return res.status(400).json({ error: 'Latitude and longitude are required' });
-  }
-
-  const userLat = parseFloat(lat);
-  const userLng = parseFloat(lng);
-  const radiusKm = parseFloat(radius);
-
-  if (isNaN(userLat) || isNaN(userLng) || isNaN(radiusKm)) {
-    return res.status(400).json({ error: 'Invalid coordinates or radius' });
-  }
-
-  const dbInstance = db.getDb();
-  dbInstance.all(
-    `SELECT cs.*, u.username as owner_name 
-     FROM charging_stations cs 
-     JOIN users u ON cs.owner_id = u.id 
-     WHERE cs.is_verified = 1 
-     AND cs.latitude IS NOT NULL 
-     AND cs.longitude IS NOT NULL`,
-    (err, stations) => {
-      if (err) {
-        return res.status(500).json({ error: 'Database error' });
-      }
-
-      // Calculate distance using Haversine formula
-      const R = 6371; // Earth's radius in km
-      const stationsWithDistance = stations.map(station => {
-        const dLat = (station.latitude - userLat) * Math.PI / 180;
-        const dLng = (station.longitude - userLng) * Math.PI / 180;
-        const a = 
-          Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-          Math.cos(userLat * Math.PI / 180) * Math.cos(station.latitude * Math.PI / 180) *
-          Math.sin(dLng / 2) * Math.sin(dLng / 2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        const distance = R * c;
-
-        return { ...station, distance: Math.round(distance * 10) / 10 };
-      });
-
-      // Filter by radius and sort by distance
-      const nearbyStations = stationsWithDistance
-        .filter(s => s.distance <= radiusKm)
-        .sort((a, b) => a.distance - b.distance);
-
-      res.json({
-        stations: nearbyStations,
-        total: nearbyStations.length,
-        location: { lat: userLat, lng: userLng },
-        radius: radiusKm
-      });
-    }
-  );
-});
-
 module.exports = router;
-
