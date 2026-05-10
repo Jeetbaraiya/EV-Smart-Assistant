@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import './Dashboard.css';
 
@@ -11,6 +12,7 @@ const CONNECTOR_TYPES = [
 
 const OwnerStations = () => {
   const { getToken } = useAuth();
+  const location = useLocation();
   const [stations, setStations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -29,8 +31,15 @@ const OwnerStations = () => {
 
   useEffect(() => {
     fetchMyStations();
+    
+    if (location.state?.openAddForm) {
+      resetForm();
+      setShowForm(true);
+      // Clean up state to prevent form re-opening on refresh
+      window.history.replaceState({}, document.title);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [location.state]);
 
   const fetchMyStations = async () => {
     try {
@@ -205,22 +214,22 @@ const OwnerStations = () => {
         {/* ── Form Section ───────────────────────────────── */}
         {showForm && (
           <div className="glossy-panel" id="station-form" style={{ marginBottom: '2rem' }}>
-            <h3>{editingStation ? '✏️ Edit Station Configuration' : '✨ Initialize New Charging Station'}</h3>
+            <h3>✨ Initialize New Charging Station</h3>
             <form onSubmit={handleSubmit}>
               <div className="form-row">
                 <div className="form-group">
-                  <label>Station Name *</label>
+                  <label>STATION NAME *</label>
                   <input type="text" name="name" value={formData.name} onChange={handleChange} required placeholder="e.g. GreenCharge City Center" />
                 </div>
               </div>
 
               <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-                <label>Connector Types *</label>
+                <label>CONNECTOR TYPES *</label>
                 <div className="connector-types-grid">
                   {CONNECTOR_TYPES.map(type => (
                     <label key={type} className={`connector-checkbox ${formData.connector_types.includes(type) ? 'selected' : ''}`}>
                       <input type="checkbox" checked={formData.connector_types.includes(type)} onChange={() => handleConnectorToggle(type)} />
-                      🔌 {type}
+                      <span className="connector-icon">🔌</span> {type.toUpperCase()}
                     </label>
                   ))}
                 </div>
@@ -228,56 +237,58 @@ const OwnerStations = () => {
 
               <div className="form-row">
                 <div className="form-group">
-                  <label>Full Address *</label>
+                  <label>FULL ADDRESS *</label>
                   <input type="text" name="address" value={formData.address} onChange={handleChange} required placeholder="Street address" />
                 </div>
               </div>
 
               <div className="form-row">
                 <div className="form-group">
-                  <label>City *</label>
+                  <label>CITY *</label>
                   <input type="text" name="city" value={formData.city} onChange={handleChange} required />
                 </div>
                 <div className="form-group">
-                  <label>State *</label>
+                  <label>STATE *</label>
                   <input type="text" name="state" value={formData.state} onChange={handleChange} required />
                 </div>
                 <div className="form-group">
-                  <label>ZIP Code</label>
+                  <label>ZIP CODE</label>
                   <input type="text" name="zip_code" value={formData.zip_code} onChange={handleChange} />
                 </div>
               </div>
 
               <div className="form-row">
-                <div className="form-group" style={{ position: 'relative' }}>
-                  <label>Latitude (for Map)</label>
+                <div className="form-group">
+                  <label>LATITUDE (FOR MAP)</label>
                   <input type="text" inputMode="decimal" name="latitude" value={formData.latitude} onChange={handleChange} placeholder="e.g. 21.7645" />
                 </div>
                 <div className="form-group">
-                  <label>Longitude (for Map)</label>
+                  <label>LONGITUDE (FOR MAP)</label>
                   <input type="text" inputMode="decimal" name="longitude" value={formData.longitude} onChange={handleChange} placeholder="e.g. 72.1519" />
                 </div>
                 <div className="form-group" style={{ flex: 1, display: 'flex', alignItems: 'flex-end', gap: '1rem' }}>
-                  <button type="button" onClick={handleGetLocation} className="btn-neutral" style={{ height: '45px', width: '100%', marginBottom: '1px' }}>
+                  <button type="button" onClick={handleGetLocation} className="btn-neutral" style={{ height: '45px', width: '100%', marginBottom: '1px', fontSize: '0.85rem', fontWeight: 700 }}>
                     📍 Get Current Loc
                   </button>
-                  <p style={{ margin: 0, fontSize: '0.75rem', color: '#64748b', fontStyle: 'italic', marginBottom: '8px' }}>
+                </div>
+              </div>
+              <div style={{ marginBottom: '1.5rem' }}>
+                 <p style={{ margin: 0, fontSize: '0.75rem', color: '#64748b', fontStyle: 'italic' }}>
                     💡 Tip: Coordinates are needed for your station to appear on the user map.
                   </p>
-                </div>
               </div>
 
               <div className="form-row">
                 <div className="form-group">
-                  <label>Power Output (kW) *</label>
+                  <label>POWER OUTPUT (KW) *</label>
                   <input type="text" inputMode="decimal" name="power_kw" value={formData.power_kw} onChange={handleChange} required placeholder="50" />
                 </div>
                 <div className="form-group">
-                  <label>Price (₹/kWh)</label>
+                  <label>PRICE (₹/KWH)</label>
                   <input type="text" inputMode="decimal" name="price_per_kw" value={formData.price_per_kw} onChange={handleChange} placeholder="8.50" />
                 </div>
                 <div className="form-group">
-                  <label>Initial Status *</label>
+                  <label>INITIAL STATUS *</label>
                   <select name="availability" value={formData.availability} onChange={handleChange} required>
                     <option value="available">🟢 Active & Online</option>
                     <option value="unavailable">🔴 Unavailable</option>
@@ -286,9 +297,11 @@ const OwnerStations = () => {
                 </div>
               </div>
 
-              <div className="form-actions">
-                <button type="button" onClick={handleCancel} className="btn-secondary">Cancel</button>
-                <button type="submit" className="btn-primary">{editingStation ? '🚨 Update Station' : '🚀 Launch Station'}</button>
+              <div className="form-actions" style={{ justifyContent: 'flex-end', gap: '1rem' }}>
+                <button type="button" onClick={handleCancel} className="btn-secondary" style={{ borderRadius: '10px' }}>Cancel</button>
+                <button type="submit" className="btn-primary" style={{ borderRadius: '10px', background: 'linear-gradient(135deg, #6366f1, #4f46e5)', padding: '0.75rem 1.5rem' }}>
+                  🚀 {editingStation ? 'Update Station' : 'Launch Station'}
+                </button>
               </div>
             </form>
           </div>

@@ -182,7 +182,7 @@ const OwnerDashboard = () => {
 
         {/* ── Quick Actions ──────────────────────────────── */}
         <div className="quick-actions-grid">
-          <div className="quick-action-card" onClick={() => navigate('/owner/my-stations')}>
+          <div className="quick-action-card" onClick={() => navigate('/owner/my-stations', { state: { openAddForm: true } })}>
             <div className="quick-action-icon"><h3>+</h3></div>
             <div className="quick-action-info">
               <h4>Add Station</h4>
