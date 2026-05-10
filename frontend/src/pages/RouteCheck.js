@@ -359,12 +359,12 @@ const RouteCheck = () => {
                   <div className="form-group form-group-4">
                     <label>Capacity (kWh)</label>
                     <input type="number" name="batteryCapacity" value={formData.batteryCapacity}
-                      onChange={handleChange} required min="1" step="0.1" />
+                      onChange={handleChange} required min="1" step="0.1" disabled={!!selectedVehicleId} />
                   </div>
                   <div className="form-group form-group-4">
                     <label>Eff. (kWh/100km)</label>
                     <input type="number" name="efficiency" value={formData.efficiency}
-                      onChange={handleChange} required min="0.1" step="0.1" />
+                      onChange={handleChange} required min="0.1" step="0.1" disabled={!!selectedVehicleId} />
                   </div>
 
                   <div className="form-group form-group-4">

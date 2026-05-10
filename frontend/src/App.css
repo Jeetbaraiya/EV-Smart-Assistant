@@ -40,10 +40,10 @@
   }
 }
 
-/* Push content above the fixed mobile bottom nav bar (authenticated regular users) */
+/* Push content above the fixed mobile bottom nav bar (all authenticated users on mobile) */
 @media (max-width: 768px) {
-  .App:not(.with-sidebar) .main-content {
-    padding-bottom: 58px;
+  .App.authenticated .main-content {
+    padding-bottom: 70px; /* Slightly more room for better breathing space */
   }
 }
 

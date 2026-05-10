@@ -96,39 +96,20 @@ const AdminDashboard = () => {
       <div className="dashboard-container">
 
         {/* ── Header ─────────────────────────────────────── */}
-        <header style={{
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-          marginBottom: '2rem', paddingBottom: '1.5rem',
-          borderBottom: '1px solid #e8eef8'
-        }}>
-          <div>
-            <h2 style={{ margin: 0, fontSize: '1.75rem', fontWeight: 800, color: '#1e293b', letterSpacing: '-0.02em' }}>
-              ⚡ Admin Command Center
-            </h2>
-            <p style={{ margin: '0.25rem 0 0', color: '#64748b', fontSize: '0.9rem' }}>
-              Real-time analytics for the India EV Charging Network
-            </p>
+        <header className="admin-header">
+          <div className="admin-header-title">
+            <h2>⚡ Admin Command Center</h2>
+            <p>Real-time analytics for the India EV Charging Network</p>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <span style={{
-              background: '#f0fdf4', color: '#16a34a', border: '1px solid #bbf7d0',
-              padding: '0.35rem 0.85rem', borderRadius: '999px', fontSize: '0.78rem', fontWeight: 700
-            }}>● Live</span>
+          <div className="admin-header-actions">
+            <span className="live-indicator">● Live</span>
             <button 
+              className="btn-bookings-link"
               onClick={() => window.location.href = '/admin/bookings'}
-              style={{
-                background: '#fff', color: '#6C63FF', border: '1.5px solid #6C63FF',
-                padding: '0.6rem 1.25rem', borderRadius: '12px', fontWeight: 600,
-                cursor: 'pointer', fontSize: '0.875rem'
-              }}
             >📋 Bookings</button>
-            <button onClick={() => fetchData()} style={{
-              background: 'linear-gradient(135deg, #6C63FF, #5a52d5)',
-              color: 'white', border: 'none', padding: '0.6rem 1.25rem',
-              borderRadius: '12px', fontWeight: 600, cursor: 'pointer',
-              fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.4rem',
-              boxShadow: '0 4px 12px rgba(108,99,255,0.3)', transition: 'all 0.2s'
-            }}>🔄 Refresh</button>
+            <button className="btn-refresh-dashboard" onClick={() => fetchData()}>
+              <span className="refresh-icon">🔄</span> Refresh
+            </button>
           </div>
         </header>
 
@@ -204,23 +185,16 @@ const AdminDashboard = () => {
                     </div>
                   </div>
 
-                  <div className="stat-card" style={{ borderTop: '4px solid #f59e0b' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                      <div>
-                        <div style={{ fontSize: '2.4rem', fontWeight: 800, color: '#1e293b', letterSpacing: '-0.03em' }}>
-                          {stats.verifiedStations || 0}
-                        </div>
-                        <div style={{ fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#64748b', marginTop: '0.25rem' }}>Verified Stations</div>
-                        <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.35rem' }}>
+                  <div className="stat-card stat-card--amber">
+                    <div className="stat-card-inner">
+                      <div className="stat-card-content">
+                        <div className="stat-card-value">{stats.verifiedStations || 0}</div>
+                        <div className="stat-card-label">Verified Stations</div>
+                        <div className="stat-card-subtext">
                           {stats.pendingStations || 0} awaiting approval
                         </div>
                       </div>
-                      <div style={{
-                        width: 48, height: 48, borderRadius: '14px',
-                        background: 'linear-gradient(135deg, #fffbeb, #fde68a)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        color: '#f59e0b', flexShrink: 0
-                      }}>
+                      <div className="stat-card-icon-box amber">
                         <IconClock />
                       </div>
                     </div>
@@ -230,99 +204,98 @@ const AdminDashboard = () => {
                 {/* ── second row: power + summary ────────────── */}
                 <div className="admin-dashboard-row">
                   {/* Power capacity card */}
-                  <div className="stat-card" style={{
-                    background: 'linear-gradient(135deg, #6C63FF 0%, #4f46e5 100%)',
-                    color: 'white', borderTop: 'none'
-                  }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                      <div>
-                        <div style={{ fontSize: '2.4rem', fontWeight: 800, letterSpacing: '-0.03em' }}>
-                          {stats.totalPowerCapacity || 0}
-                        </div>
-                        <div style={{ fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', opacity: 0.85, marginTop: '0.25rem' }}>Total Output (kW)</div>
-                        <div style={{ fontSize: '0.75rem', opacity: 0.65, marginTop: '0.35rem' }}>Combined grid capacity</div>
+                  <div className="stat-card stat-card--premium">
+                    <div className="stat-card-inner">
+                      <div className="stat-card-content">
+                        <div className="stat-card-value white">{stats.totalPowerCapacity || 0}</div>
+                        <div className="stat-card-label white opacity-80">Total Output (kW)</div>
+                        <div className="stat-card-subtext white opacity-60">Combined grid capacity</div>
                       </div>
-                      <div style={{ opacity: 0.9, fontSize: '2rem' }}>⚡</div>
+                      <div className="stat-card-icon-large">⚡</div>
                     </div>
                   </div>
 
                   {/* Platform health summary */}
-                  <div className="stat-card" style={{ borderTop: 'none', display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '2rem', flexWrap: 'wrap' }}>
-                    <div style={{ flex: 1, minWidth: 120, textAlign: 'center' }}>
-                      <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#22c55e' }}>
+                  <div className="stat-card stat-card--summary">
+                    <div className="summary-item">
+                      <div className="summary-value green">
                         {stats.totalStations > 0 ? Math.round((stats.verifiedStations / stats.totalStations) * 100) : 0}%
                       </div>
-                      <div style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 600, marginTop: '0.2rem' }}>Verification Rate</div>
+                      <div className="summary-label">Verification Rate</div>
                     </div>
-                    <div style={{ width: 1, height: 56, background: '#e2e8f0' }} />
-                    <div style={{ flex: 1, minWidth: 120, textAlign: 'center' }}>
-                      <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#6C63FF' }}>
+                    <div className="summary-divider" />
+                    <div className="summary-item">
+                      <div className="summary-value purple">
                         {stats.totalOwners > 0 ? Math.round((stats.verifiedOwners / stats.totalOwners) * 100) : 0}%
                       </div>
-                      <div style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 600, marginTop: '0.2rem' }}>Owner Approval Rate</div>
+                      <div className="summary-label">Owner Approval Rate</div>
                     </div>
-                    <div style={{ width: 1, height: 56, background: '#e2e8f0' }} />
-                    <div style={{ flex: 1, minWidth: 120, textAlign: 'center' }}>
-                      <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#f59e0b' }}>
+                    <div className="summary-divider" />
+                    <div className="summary-item">
+                      <div className="summary-value amber">
                         {stats.pendingStations || 0}
                       </div>
-                      <div style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 600, marginTop: '0.2rem' }}>Needs Review</div>
+                      <div className="summary-label">Needs Review</div>
                     </div>
                   </div>
                 </div>
 
                 {/* ── Charts ─────────────────────────────────── */}
                 <div className="admin-dashboard-chart-row">
-                  <div className="stat-card" style={{ borderTop: 'none' }}>
-                    <h4 style={{ margin: '0 0 1.25rem', fontWeight: 700, color: '#1e293b', fontSize: '1rem' }}>📈 Usage Trend</h4>
-                    <ResponsiveContainer width="100%" height={260}>
-                      <BarChart data={stats.routeUsageTrend || []} barSize={28}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                        <XAxis 
-                          dataKey="day" 
-                          tick={{ fontSize: 11, fill: '#94a3b8' }} 
-                          axisLine={false} 
-                          tickLine={false}
-                          tickFormatter={(str) => {
-                            if (!str) return '';
-                            try {
-                              return new Date(str).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-                            } catch (e) { return str; }
-                          }}
-                        />
-                        <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-                        <Tooltip 
-                          labelFormatter={(label) => new Date(label).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
-                          contentStyle={{ borderRadius: 12, border: 'none', boxShadow: '0 10px 25px rgba(0,0,0,0.05)' }} 
-                        />
-                        <Bar dataKey="count" fill="#6C63FF" radius={[6, 6, 0, 0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
+                  <div className="stat-card stat-card--chart">
+                    <h4 className="chart-title">📈 Usage Trend</h4>
+                    <div className="chart-container">
+                      <ResponsiveContainer width="100%" height={260}>
+                        <BarChart data={stats.routeUsageTrend || []} barSize={28}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                          <XAxis 
+                            dataKey="day" 
+                            tick={{ fontSize: 11, fill: '#94a3b8' }} 
+                            axisLine={false} 
+                            tickLine={false}
+                            tickFormatter={(str) => {
+                              if (!str) return '';
+                              try {
+                                return new Date(str).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+                              } catch (e) { return str; }
+                            }}
+                          />
+                          <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                          <Tooltip 
+                            labelFormatter={(label) => new Date(label).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
+                            contentStyle={{ borderRadius: 12, border: 'none', boxShadow: '0 10px 25px rgba(0,0,0,0.05)' }} 
+                          />
+                          <Bar dataKey="count" fill="#6C63FF" radius={[6, 6, 0, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
                   </div>
 
-                  <div className="stat-card" style={{ borderTop: 'none' }}>
-                    <h4 style={{ margin: '0 0 1.25rem', fontWeight: 700, color: '#1e293b', fontSize: '1rem' }}>🔌 Station Status</h4>
-                    <ResponsiveContainer width="100%" height={260}>
-                      <PieChart>
-                        <Pie
-                          data={[
-                            { name: 'Available', value: stats.stationStatusDistribution?.available || 0 },
-                            { name: 'Busy', value: stats.stationStatusDistribution?.busy || 0 },
-                            { name: 'Offline', value: stats.stationStatusDistribution?.offline || 0 }
-                          ]}
-                          dataKey="value"
-                          outerRadius={90}
-                          innerRadius={50}
-                          paddingAngle={4}
-                        >
-                          <Cell fill="#22c55e" />
-                          <Cell fill="#f59e0b" />
-                          <Cell fill="#ef4444" />
-                        </Pie>
-                        <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid #e2e8f0' }} />
-                        <Legend iconType="circle" />
-                      </PieChart>
-                    </ResponsiveContainer>
+                  <div className="stat-card stat-card--chart">
+                    <h4 className="chart-title">🔌 Station Status</h4>
+                    <div className="chart-container">
+                      <ResponsiveContainer width="100%" height={260}>
+                        <PieChart>
+                          <Pie
+                            data={[
+                              { name: 'Available', value: stats.stationStatusDistribution?.available || 0 },
+                              { name: 'Busy', value: stats.stationStatusDistribution?.busy || 0 },
+                              { name: 'Offline', value: stats.stationStatusDistribution?.offline || 0 }
+                            ]}
+                            dataKey="value"
+                            outerRadius={90}
+                            innerRadius={60}
+                            paddingAngle={5}
+                          >
+                            <Cell fill="#22c55e" />
+                            <Cell fill="#f59e0b" />
+                            <Cell fill="#ef4444" />
+                          </Pie>
+                          <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid #e2e8f0' }} />
+                          <Legend verticalAlign="bottom" height={36} iconType="circle" />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
                   </div>
                 </div>
 

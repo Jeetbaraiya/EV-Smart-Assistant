@@ -545,7 +545,7 @@ router.post('/optimize-route', [
       }
       return { ...station, proximityKm: minProximity };
     }).filter(Boolean).filter(s => {
-      if (s.proximityKm > 5) return false; // STRICT 5km buffer for highway stations
+      if (s.proximityKm > 15) return false; // Increased from 5km to 15km for better highway coverage
       if (filters.availableOnly && String(s.status || 'available') !== 'available') return false;
       if (filters.fastChargerOnly && Number(s.power_kw || 0) < 30) return false; 
       if (filters.minPowerKw != null && Number(s.power_kw || 0) < parseFloat(filters.minPowerKw)) return false;
@@ -575,24 +575,32 @@ router.post('/optimize-route', [
     }
 
     // ── PROJECT NODES ONTO POLYLINE ──────────────────────────
-    const distToSegment = (px, py, x1, y1, x2, y2) => {
-      const l2 = (x2-x1)**2 + (y2-y1)**2;
-      if (l2 === 0) return haversineKm(px, py, x1, y1);
-      let t = ((px-x1)*(x2-x1) + (py-y1)*(y2-y1)) / l2;
-      t = Math.max(0, Math.min(1, t));
-      return haversineKm(px, py, x1 + t*(x2-x1), y1 + t*(y2-y1));
-    };
-
     const projectToPolyline = (lat, lon, routePolyline) => {
-      if (!routePolyline) return 0;
+      if (!routePolyline || routePolyline.length < 2) return 0;
       let minDist = Infinity;
       let totalDist = 0;
       let bestDistAlong = 0;
       for (let i = 0; i < routePolyline.length - 1; i++) {
         const p1 = routePolyline[i], p2 = routePolyline[i+1];
         const segLen = haversineKm(p1[0], p1[1], p2[0], p2[1]);
-        const d = distToSegment(lat, lon, p1[0], p1[1], p2[0], p2[1]);
-        if (d < minDist) { minDist = d; bestDistAlong = totalDist + (segLen / 2); }
+        
+        // Find projection of point onto segment P1-P2
+        const l2 = (p2[0]-p1[0])**2 + (p2[1]-p1[1])**2;
+        let t = 0;
+        if (l2 > 0) {
+          t = ((lat-p1[0])*(p2[0]-p1[0]) + (lon-p1[1])*(p2[1]-p1[1])) / l2;
+          t = Math.max(0, Math.min(1, t));
+        }
+        
+        // Distance from point to its projection on the segment
+        const projLat = p1[0] + t*(p2[0]-p1[0]);
+        const projLon = p1[1] + t*(p2[1]-p1[1]);
+        const d = haversineKm(lat, lon, projLat, projLon);
+        
+        if (d < minDist) { 
+          minDist = d; 
+          bestDistAlong = totalDist + (t * segLen); 
+        }
         totalDist += segLen;
       }
       return bestDistAlong;
@@ -780,7 +788,8 @@ router.post('/multi-stop-plan', [
             allLegs: allLegMetrics,
             totalDistanceKm: Math.round(fallbackTotalDistanceKm * 10) / 10,
             totalTimeMinutes: Math.round(fallbackTotalTimeMinutes * 10) / 10,
-            potentialStations: segmentResult.potentialStations || []
+            potentialStations: segmentResult.potentialStations || [],
+            recommendedStation: segmentResult.recommendedStation || null
          });
       }
 

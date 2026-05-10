@@ -1602,4 +1602,277 @@
   flex-shrink: 0;
   display: flex;
   align-items: center;
-}
+}
+
+/* ── Admin Dashboard Refined Styles ────────────────────────── */
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #e8eef8;
+  gap: 1.5rem;
+}
+
+.admin-header-title h2 {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #1e293b;
+  letter-spacing: -0.02em;
+}
+
+.admin-header-title p {
+  margin: 0.25rem 0 0;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.admin-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.live-indicator {
+  background: #f0fdf4;
+  color: #16a34a;
+  border: 1px solid #bbf7d0;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.btn-bookings-link {
+  background: #fff;
+  color: #6C63FF;
+  border: 1.5px solid #6C63FF;
+  padding: 0.6rem 1.25rem;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+}
+
+.btn-bookings-link:hover {
+  background: rgba(108, 99, 255, 0.05);
+}
+
+.btn-refresh-dashboard {
+  background: linear-gradient(135deg, #6C63FF, #5a52d5);
+  color: white;
+  border: none;
+  padding: 0.6rem 1.25rem;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  box-shadow: 0 4px 12px rgba(108, 99, 255, 0.3);
+  transition: all 0.2s;
+}
+
+.btn-refresh-dashboard:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(108, 99, 255, 0.4);
+}
+
+/* Stat Card Improvements */
+.stat-card-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.stat-card-value {
+  font-size: 2.4rem;
+  font-weight: 800;
+  color: #1e293b;
+  letter-spacing: -0.03em;
+}
+
+.stat-card-value.white { color: white; }
+
+.stat-card-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #64748b;
+  margin-top: 0.25rem;
+}
+
+.stat-card-label.white { color: white; }
+
+.stat-card-subtext {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  margin-top: 0.35rem;
+}
+
+.stat-card-subtext.white { color: white; }
+
+.opacity-80 { opacity: 0.8; }
+.opacity-60 { opacity: 0.6; }
+
+.stat-card-icon-box {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.stat-card-icon-box.amber {
+  background: linear-gradient(135deg, #fffbeb, #fde68a);
+  color: #f59e0b;
+}
+
+.stat-card-icon-large {
+  font-size: 2rem;
+  opacity: 0.9;
+}
+
+.stat-card--premium {
+  background: linear-gradient(135deg, #6C63FF 0%, #4f46e5 100%) !important;
+  border: none !important;
+}
+
+.stat-card--amber {
+  border-top: 4px solid #f59e0b !important;
+}
+
+/* Summary Card */
+.stat-card--summary {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-around;
+  padding: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.summary-item {
+  flex: 1;
+  min-width: 100px;
+  text-align: center;
+}
+
+.summary-value {
+  font-size: 1.6rem;
+  font-weight: 800;
+}
+
+.summary-value.green { color: #22c55e; }
+.summary-value.purple { color: #6C63FF; }
+.summary-value.amber { color: #f59e0b; }
+
+.summary-label {
+  font-size: 0.75rem;
+  color: #64748b;
+  font-weight: 600;
+  margin-top: 0.2rem;
+}
+
+.summary-divider {
+  width: 1px;
+  height: 40px;
+  background: #e2e8f0;
+}
+
+/* Mobile Adjustments for Dashboard */
+@media (max-width: 768px) {
+  .admin-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    padding-bottom: 1.25rem;
+  }
+
+  .admin-header-actions {
+    width: 100%;
+    justify-content: flex-start;
+    gap: 0.5rem;
+  }
+
+  .admin-header-actions button {
+    flex: 1;
+    justify-content: center;
+    padding: 0.6rem 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .summary-divider {
+    display: none;
+  }
+
+  .stat-card--summary {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1.25rem;
+    padding: 2rem 1.5rem;
+  }
+
+  .summary-item:not(:last-child) {
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 1.25rem;
+  }
+
+  .summary-item {
+    min-width: 0;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-header-title h2 {
+    font-size: 1.5rem;
+  }
+
+  .stat-card-value {
+    font-size: 2rem;
+  }
+
+  .summary-value {
+    font-size: 1.3rem;
+  }
+}
+
+/* ── Chart Styles ───────────────────────────────────────── */
+.chart-title {
+  margin: 0 0 1.25rem;
+  font-weight: 700;
+  color: #1e293b;
+  font-size: 1rem;
+}
+
+.chart-container {
+  width: 100%;
+}
+
+.stat-card--chart {
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 768px) {
+  .admin-dashboard-chart-row {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
+

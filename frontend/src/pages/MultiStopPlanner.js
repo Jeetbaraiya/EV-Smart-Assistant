@@ -244,11 +244,11 @@ const MultiStopPlanner = () => {
                   </div>
                   <div className="form-group form-group-4">
                     <label>Capacity (kWh)</label>
-                    <input type="number" name="batteryCapacity" value={formData.batteryCapacity} onChange={handleChange} required min="1" />
+                    <input type="number" name="batteryCapacity" value={formData.batteryCapacity} onChange={handleChange} required min="1" disabled={!!selectedVehicleId} />
                   </div>
                   <div className="form-group form-group-4">
                     <label>Eff. (kWh/100km)</label>
-                    <input type="number" name="efficiency" value={formData.efficiency} onChange={handleChange} required min="1" />
+                    <input type="number" name="efficiency" value={formData.efficiency} onChange={handleChange} required min="1" disabled={!!selectedVehicleId} />
                   </div>
 
                   <div className="form-group form-group-4">
@@ -364,9 +364,22 @@ const MultiStopPlanner = () => {
                                    
                                    {!multiStopPlan.recommendedStation && (
                                      <div style={{ background: '#fef2f2', padding: '0.8rem', borderRadius: '8px', border: '1px dashed #ef4444' }}>
-                                       <p style={{ color: '#991b1b', fontSize: '0.85rem', fontWeight: 600, margin: '0 0 4px 0' }}>❌ No Charging Stations Found:</p>
+                                       <p style={{ color: '#991b1b', fontSize: '0.85rem', fontWeight: 600, margin: '0 0 4px 0' }}>
+                                         {multiStopPlan.potentialStations?.length > 0 
+                                           ? '❌ No Reachable Stations Found:' 
+                                           : '❌ No Charging Stations Found:'}
+                                       </p>
                                        <p style={{ color: '#b91c1c', fontSize: '0.85rem', margin: 0 }}>
-                                         We couldn't find any chargers between <strong>{failure.from}</strong> and <strong>{failure.to}</strong>. 
+                                         {multiStopPlan.potentialStations?.length > 0 ? (
+                                           <>
+                                             We found <strong>{multiStopPlan.potentialStations.length} station(s)</strong> on this route, but none are within your current range (~{failure.rangeKm} km).
+                                           </>
+                                         ) : (
+                                           <>
+                                             We couldn't find any chargers between <strong>{failure.from}</strong> and <strong>{failure.to}</strong>.
+                                           </>
+                                         )}
+                                         <br />
                                          Please consider an alternative route or manually search the map.
                                        </p>
                                      </div>

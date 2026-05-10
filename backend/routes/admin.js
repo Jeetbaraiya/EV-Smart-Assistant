@@ -221,20 +221,16 @@ router.delete('/owners/:id', (req, res) => {
 router.get('/stats', (req, res) => {
   const dbInstance = db.getDb();
   
-  const INDIA_COUNT = sampleIndiaStations.length;
-  const INDIA_POWER = sampleIndiaStations.reduce((sum, s) => sum + (s.power_kw || 0), 0);
-
   const stats = {};
   let completed = 0;
   const total = 11;
 
+
   const checkDone = () => {
     completed++;
     if (completed === total) {
-      // Merge India network stations into totals
-      stats.indiaStations   = INDIA_COUNT;
-      stats.totalStations   = (stats.dbStations || 0) + INDIA_COUNT;
-      stats.totalPowerCapacity = Math.round((stats.dbPowerCapacity || 0) + INDIA_POWER);
+      stats.totalStations   = (stats.dbStations || 0);
+      stats.totalPowerCapacity = Math.round(stats.dbPowerCapacity || 0);
       res.json({ stats });
     }
   };
@@ -333,10 +329,7 @@ router.get('/stats', (req, res) => {
           }
         });
         
-        // Ensure INDIA stations are counted as available if they aren't in DB
-        // But since dbStations + INDIA_COUNT is total, we should add INDIA_COUNT to available
-        dist.available += INDIA_COUNT;
-        
+        // We no longer add hardcoded counts
         stats.stationStatusDistribution = dist;
       }
       checkDone();
