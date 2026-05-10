@@ -438,12 +438,12 @@ const BookingModal = ({ station, onClose, onBookingSuccess, getToken, isAuthenti
                       <>
                         <div className="summary-item">
                           <span className="summary-label">Scheduled Date</span>
-                          <span className="summary-value">📅 {new Date(bookingDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                          <span className="summary-value">{new Date(bookingDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
                         </div>
                         <div className="summary-item">
                           <span className="summary-label">Start Time</span>
                           <span className="summary-value">
-                            ⏰ {(() => {
+                             {(() => {
                                 const [h, m] = bookingTime.split(':').map(Number);
                                 const period = h >= 12 ? 'PM' : 'AM';
                                 const h12 = h % 12 || 12;
@@ -454,7 +454,7 @@ const BookingModal = ({ station, onClose, onBookingSuccess, getToken, isAuthenti
                         <div className="summary-item">
                           <span className="summary-label">End Time</span>
                           <span className="summary-value">
-                              🏁 {(() => {
+                               {(() => {
                                   const [h] = bookingTime.split(':').map(Number);
                                   const endH = h + 1;
                                   const period = endH >= 12 && endH < 24 ? 'PM' : (endH >= 24 ? 'PM' : 'AM');

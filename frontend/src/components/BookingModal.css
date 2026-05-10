@@ -62,7 +62,7 @@ body.modal-open {
 
 .booking-modal-header h3 {
   margin: 0;
-  font-size: 1.4rem; /* Slightly smaller */
+  font-size: 1.2rem; /* Reduced from 1.4rem */
   color: #0f172a;
   font-weight: 800;
   letter-spacing: -0.02em;
@@ -134,7 +134,7 @@ body.modal-open {
 }
 
 .form-group label {
-  font-size: 0.7rem;
+  font-size: 0.65rem; /* Reduced from 0.7rem */
   font-weight: 750;
   color: #64748b;
   text-transform: uppercase;
@@ -221,7 +221,7 @@ input[type="range"] {
 
 .booking-summary-box {
   background: #f8fafc;
-  padding: 1rem;
+  padding: 0.6rem 0.8rem;
   border-radius: 16px;
   margin-bottom: 1.25rem;
   border: 1px solid #e2e8f0;
@@ -236,8 +236,8 @@ input[type="range"] {
 .summary-item {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 0.4rem; /* Reduced from 0.6rem */
-  font-size: 0.9rem;
+  margin-bottom: 0.25rem;
+  font-size: 16px !important; /* Fixed to 16px */
 }
 
 .summary-label {
@@ -247,13 +247,14 @@ input[type="range"] {
 
 .summary-value {
   color: #1e293b;
-  font-weight: 700;
+  font-weight: 600;
+  font-size: 16px !important; /* Fixed to 16px */
 }
 
 .summary-divider {
   height: 1px;
   background: #e2e8f0;
-  margin: 0.75rem 0; /* Reduced from 1rem */
+  margin: 0.5rem 0; /* Reduced from 0.75rem */
 }
 
 .summary-item.highlight {
@@ -264,12 +265,12 @@ input[type="range"] {
 .summary-item.highlight .summary-label {
   color: #0f172a;
   font-weight: 800;
-  font-size: 1rem;
+  font-size: 0.8rem; /* Reduced from 0.85rem */
 }
 
 .price-tag {
   color: #4f46e5;
-  font-size: 1.1rem;
+  font-size: 16px !important; /* Fixed to 16px */
   font-weight: 800;
 }
 
@@ -381,7 +382,7 @@ input[type="range"] {
 
 .booking-station-title {
   margin: 0 0 0.2rem 0;
-  font-size: 1rem;
+  font-size: 0.9rem; /* Reduced from 1rem */
   font-weight: 800;
   color: #1e1b4b;
   line-height: 1.25;
@@ -392,7 +393,7 @@ input[type="range"] {
 
 .booking-station-addr {
   margin: 0 0 0.45rem 0;
-  font-size: 0.78rem;
+  font-size: 0.7rem; /* Reduced from 0.78rem */
   color: #6366f1;
   font-weight: 500;
   line-height: 1.3;
@@ -567,7 +568,13 @@ input[type="range"] {
   }
 
   .summary-item {
-    font-size: 0.85rem;
+    font-size: 16px !important;
+  }
+  .summary-value {
+    font-size: 16px !important;
+  }
+  .price-tag {
+    font-size: 16px !important;
   }
 
   .time-slots-container {
@@ -647,11 +654,13 @@ input[type="range"] {
   }
 
   .summary-item {
-    font-size: 0.82rem;
+    font-size: 16px !important;
   }
-
+  .summary-value {
+    font-size: 16px !important;
+  }
   .price-tag {
-    font-size: 1rem;
+    font-size: 16px !important;
   }
 
   .connector-select {
