@@ -128,23 +128,8 @@ const Home = () => {
           </div>
           
           <div className="features">
-            <div className="feature-card" data-aos="fade-up" data-aos-delay="100">
-              <div className="feature-header">
-                <div className="feature-icon">🔋</div>
-                <h3>Intelligent Range Calculator</h3>
-              </div>
-              <p>Get precise range estimates based on your vehicle's battery status, driving conditions, and real-world efficiency data.</p>
-              <div className="feature-highlights">
-                <span className="highlight-tag">AI-Powered</span>
-                <span className="highlight-tag">Real-time Data</span>
-              </div>
-              <Link to={isAuthenticated ? "/calculator/range" : "/login"} className="feature-link">
-                Try Calculator 
-                <span className="link-arrow">→</span>
-              </Link>
-            </div>
 
-            <div className="feature-card" data-aos="fade-up" data-aos-delay="200">
+            <div className="feature-card" data-aos="fade-up" data-aos-delay="100">
               <div className="feature-header">
                 <div className="feature-icon">🗺️</div>
                 <h3>Smart Route Validation</h3>
@@ -160,7 +145,7 @@ const Home = () => {
               </Link>
             </div>
 
-            <div className="feature-card" data-aos="fade-up" data-aos-delay="300">
+            <div className="feature-card" data-aos="fade-up" data-aos-delay="200">
               <div className="feature-header">
                 <div className="feature-icon">📍</div>
                 <h3>Verified Station Network</h3>
@@ -172,6 +157,29 @@ const Home = () => {
               </div>
               <Link to={isAuthenticated ? "/stations" : "/login"} className="feature-link">
                 Browse Stations 
+                <span className="link-arrow">→</span>
+              </Link>
+            </div>
+
+            <div className="feature-card" data-aos="fade-up" data-aos-delay="300">
+              <div className="feature-header">
+                <div className="feature-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2" />
+                    <circle cx="7" cy="17" r="2" />
+                    <path d="M9 17h6" />
+                    <circle cx="17" cy="17" r="2" />
+                  </svg>
+                </div>
+                <h3>Personal Vehicle Garage</h3>
+              </div>
+              <p>Manage your EV fleet in one place. Register vehicles to unlock precise range calculations and tailored route stop recommendations.</p>
+              <div className="feature-highlights">
+                <span className="highlight-tag">Multi-Vehicle</span>
+                <span className="highlight-tag">Smart Tracking</span>
+              </div>
+              <Link to={isAuthenticated ? "/vehicles" : "/login"} className="feature-link">
+                Manage Garage 
                 <span className="link-arrow">→</span>
               </Link>
             </div>
