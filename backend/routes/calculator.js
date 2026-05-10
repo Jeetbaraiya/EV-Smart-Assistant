@@ -528,30 +528,29 @@ router.post('/optimize-route', [
 
       let minProximity = Infinity;
       if (polyline && polyline.length > 0) {
-        // High-precision corridor check: sample the route to ensure coverage
-        const step = polyline.length > 500 ? 15 : 5; 
+        // High-precision corridor check
+        const step = polyline.length > 1000 ? 25 : (polyline.length > 500 ? 15 : 5); 
         for (let i = 0; i < polyline.length; i += step) {
           const d = haversineKm(sLat, sLon, polyline[i][0], polyline[i][1]);
           if (d < minProximity) minProximity = d;
-          if (minProximity < 0.5) break; // Optimization: If very close, stop checking
+          if (minProximity < 0.3) break; 
         }
         const dLast = haversineKm(sLat, sLon, polyline[polyline.length-1][0], polyline[polyline.length-1][1]);
         if (dLast < minProximity) minProximity = dLast;
       } else {
-        // Fallback for direct point-to-point if routing fails
         const d1 = haversineKm(sLat, sLon, originLat, originLon);
         const d2 = haversineKm(sLat, sLon, destLat, destLon);
         minProximity = Math.min(d1, d2);
       }
       return { ...station, proximityKm: minProximity };
-    }).filter(Boolean).filter(s => {
-      if (s.proximityKm > 15) return false; // Increased from 5km to 15km for better highway coverage
+    }).filter(s => {
+      if (s.proximityKm > 35) return false; // Increased to 35km for sparse rural/highway routes
       if (filters.availableOnly && String(s.status || 'available') !== 'available') return false;
       if (filters.fastChargerOnly && Number(s.power_kw || 0) < 30) return false; 
       if (filters.minPowerKw != null && Number(s.power_kw || 0) < parseFloat(filters.minPowerKw)) return false;
       return true;
     }).sort((a, b) => a.proximityKm - b.proximityKm)
-    .slice(0, 100);
+    .slice(0, 150); // Consider more stations for Dijkstra
 
     // WARNING: No stations found in corridor
     if (stationsWithProximity.length === 0) {

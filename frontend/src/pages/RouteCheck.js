@@ -43,9 +43,9 @@ const RouteCheck = () => {
   const [vehicles, setVehicles]                 = useState([]);
   const [selectedVehicleId, setSelectedVehicleId] = useState('');
   const [formData, setFormData]                 = useState({
-    distance: '', batteryPercentage: '', batteryCapacity: '60',
-    efficiency: '20', unit: 'km', origin: '', destination: '',
-    speedKmph: '80', trafficLevel: 'medium',
+    distance: '', batteryPercentage: '80', batteryCapacity: '45',
+    efficiency: '15', origin: '', destination: '',
+    trafficLevel: 'medium',
     drivingStyle: 'normal'
   });
   const [result, setResult]                     = useState(null);
@@ -368,11 +368,6 @@ const RouteCheck = () => {
                   </div>
 
                   <div className="form-group form-group-4">
-                    <label>Speed (km/h)</label>
-                    <input type="number" name="speedKmph" value={formData.speedKmph}
-                      onChange={handleChange} required min="5" step="1" />
-                  </div>
-                  <div className="form-group form-group-4">
                     <label>Traffic</label>
                     <select name="trafficLevel" value={formData.trafficLevel} onChange={handleChange}>
                       <option value="low">Low</option>
@@ -381,7 +376,7 @@ const RouteCheck = () => {
                     </select>
                   </div>
 
-                  <div className="form-group form-group-12">
+                  <div className="form-group form-group-8">
                     <label>Driving Style</label>
                     <div className="segment-control">
                       {[['eco', '🌿 Eco'], ['normal', '⚡ Normal'], ['aggressive', '🏁 Sport']].map(([val, label]) => (

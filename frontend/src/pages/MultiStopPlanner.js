@@ -28,7 +28,7 @@ const MultiStopPlanner = () => {
   const [selectedVehicleId, setSelectedVehicleId] = useState('');
   const [formData, setFormData]                 = useState({
     batteryPercentage: '80', batteryCapacity: '45',
-    efficiency: '15', speedKmph: '80', trafficLevel: 'medium', 
+    efficiency: '15', trafficLevel: 'medium', 
     drivingStyle: 'normal'
   });
   
@@ -110,7 +110,7 @@ const MultiStopPlanner = () => {
           batteryPercentage: parseFloat(formData.batteryPercentage),
           batteryCapacity: parseFloat(formData.batteryCapacity), 
           efficiency: finalEff,
-          avgSpeedKmph: parseFloat(formData.speedKmph), 
+          avgSpeedKmph: 80, 
           optimizeFor: typeof strategy === 'string' ? strategy : 'min_stops', 
           maxStationsToConsider: 20,
           filters: {
@@ -252,10 +252,6 @@ const MultiStopPlanner = () => {
                   </div>
 
                   <div className="form-group form-group-4">
-                    <label>Speed (km/h)</label>
-                    <input type="number" name="speedKmph" value={formData.speedKmph} onChange={handleChange} required min="5" />
-                  </div>
-                  <div className="form-group form-group-4">
                     <label>Traffic</label>
                     <select name="trafficLevel" value={formData.trafficLevel} onChange={handleChange}>
                       <option value="low">Low</option>
@@ -264,7 +260,7 @@ const MultiStopPlanner = () => {
                     </select>
                   </div>
 
-                  <div className="form-group form-group-12">
+                  <div className="form-group form-group-8">
                     <label>Driving Style</label>
                     <div className="segment-control">
                       {[['eco', '🌿 Eco'], ['normal', '⚡ Normal'], ['aggressive', '🏁 Sport']].map(([val, label]) => (
