@@ -213,7 +213,6 @@ Contributions are what make the open-source community such an amazing place to l
 ## 👨‍💻 Developer
 **Jeet Baraiya**  
 - GitHub: [@Jeetbaraiya](https://github.com/Jeetbaraiya)
-- Portfolio: [jeetbaraiya.com](https://jeetbaraiya.com)
 
 ---
 
