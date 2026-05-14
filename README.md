@@ -1,288 +1,225 @@
-# ⚡ EV Smart Route & Charging Assistant
+# EV Smart Assistant
 
-> **MCA Final Year Project** — Solving EV Range Anxiety through Intelligent Route Planning, Real-Time Charging Station Management, and Slot Booking.
+<div align="center">
+  <img src="https://raw.githubusercontent.com/Jeetbaraiya/EV-Smart-Assistant/main/public/logo.png" alt="EV Smart Assistant Logo" width="120" height="120" />
+  <h1>⚡ EV Smart Assistant</h1>
+  <p><b>Your Intelligent Companion for Seamless Electric Vehicle Travel</b></p>
 
-[![React](https://img.shields.io/badge/Frontend-React.js-61DAFB?style=flat-square&logo=react&logoColor=black)](https://reactjs.org/)
-[![Node.js](https://img.shields.io/badge/Backend-Node.js-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/)
-[![Express](https://img.shields.io/badge/API-Express.js-000000?style=flat-square&logo=express)](https://expressjs.com/)
-[![MySQL](https://img.shields.io/badge/Database-MySQL-4479A1?style=flat-square&logo=mysql&logoColor=white)](https://www.mysql.com/)
-[![JWT](https://img.shields.io/badge/Auth-JWT-000000?style=flat-square&logo=jsonwebtokens)](https://jwt.io/)
-[![OSM](https://img.shields.io/badge/Maps-OpenStreetMap-7EBC6F?style=flat-square&logo=openstreetmap)](https://www.openstreetmap.org/)
-
----
-
-## 🚀 1. Project Overview
-
-### The Problem — Range Anxiety
-**Range Anxiety** is the #1 barrier to EV adoption. Drivers fear their battery will run out before reaching their destination, especially on long trips where charging infrastructure is unfamiliar or hard to find.
-
-### The Solution
-**EV Smart Route & Charging Assistant** is a full-stack web platform that eliminates range anxiety by helping EV drivers plan smarter trips. It combines real-time station data, an interactive map, an intelligent route feasibility engine, and a booking system — all in one place.
-
-| Who it helps | How |
-|---|---|
-| 🧑 EV Drivers | Plan routes, spot chargers on the map, book slots in advance |
-| 🏢 Station Owners | Register stations, manage availability, track bookings & revenue |
-| 🔑 Admins | Verify stations & owners, moderate the platform, view analytics |
+  <p>
+    <a href="https://evassist.vercel.app"><strong>Explore the Live Site »</strong></a>
+    <br />
+    <br />
+    <img src="https://img.shields.io/github/stars/Jeetbaraiya/EV-Smart-Assistant?style=for-the-badge&color=ffd700" alt="Stars" />
+    <img src="https://img.shields.io/github/forks/Jeetbaraiya/EV-Smart-Assistant?style=for-the-badge&color=007bff" alt="Forks" />
+    <img src="https://img.shields.io/github/license/Jeetbaraiya/EV-Smart-Assistant?style=for-the-badge&color=28a745" alt="License" />
+    <img src="https://img.shields.io/badge/Maintained%3F-yes-brightgreen.svg?style=for-the-badge" alt="Maintained" />
+  </p>
+</div>
 
 ---
 
-## ✨ 2. Features
+## 📖 Project Overview
 
-### 🔋 Core User Features
-- **Battery Range Calculator** — Enter battery capacity, efficiency, and charge level to get an estimated range in km
-- **Route Feasibility Check** — Enter origin & destination; the system tells you if the trip is possible and suggests charging stops if not
-- **Multi-Stop Journey Planner** — Plan complex routes with multiple waypoints across verified charging stations
-- **Charging Station Finder** — Interactive map powered by OpenStreetMap; filter by connector type, power output, and distance
-- **Slot Booking System** — Book a charging time slot at a station with real-time availability tracking
-- **My Bookings** — View, track, and cancel upcoming and past sessions
-- **EV Garage** — Save your vehicle's specs (battery, efficiency) for quick calculations
-- **OTP-Based Security** — Email OTP verification for password and email changes
+**EV Smart Assistant** is a full-stack, enterprise-grade platform designed to eliminate "range anxiety" for Electric Vehicle (EV) owners. By integrating real-time mapping data with smart routing algorithms, the platform provides a comprehensive suite of services ranging from locating the nearest charging stations to optimizing long-distance travel routes.
 
-### 🏢 Station Owner Features
-- Add, edit, and manage charging stations with connector types, power output, and pricing
-- Toggle station availability (Active / Maintenance / Offline)
-- View all bookings made at their stations with revenue tracking
-- See customer reviews and ratings per station
+Built with a focus on high performance and user experience, it serves as a bridge between EV hardware and the digital ecosystem, ensuring every journey is efficient, predictable, and stress-free.
 
-### 🔑 Admin Features
-- Verify / unverify station owner accounts
-- Approve or reject charging station listings
-- View platform-wide analytics (users, owners, stations, revenue trends)
-- Moderate user accounts and station reviews
+### 🌟 Why This Project Matters
+The global shift towards sustainable transport is often hindered by the lack of reliable infrastructure visibility. **EV Smart Assistant** addresses this by providing a unified interface that consolidates fragmented charging station data and combines it with advanced navigation, making EVs a viable choice for everyone, not just tech enthusiasts.
 
 ---
 
-## 🏗️ 3. System Architecture
+## 🚀 Key Features
+
+| Feature | Description |
+| :--- | :--- |
+| **🔍 Smart Charging Search** | Locate stations near you with filters for connector types and availability. |
+| **🗺️ Route Optimization** | Calculate the most energy-efficient paths using OSRM routing engine. |
+| **📍 Interactive Maps** | High-fidelity map visualization powered by Maps API for real-time tracking. |
+| **👤 User Authentication** | Secure profile management and personalized journey history. |
+| **🛣️ Travel Support** | Intelligent recommendations for stops and nearby amenities during charging. |
+| **📱 Responsive Design** | Seamless experience across Mobile, Tablet, and Desktop devices. |
+
+---
+
+## 🛠️ Tech Stack
+
+### Frontend
+[![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactjs.org/)
+[![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+[![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/HTML5)
+[![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/CSS)
+
+### Backend & Database
+[![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
+[![Express.js](https://img.shields.io/badge/Express.js-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com/)
+[![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
+
+### APIs & Services
+- **Maps API**: Core geospatial visualization and geolocation services.
+- **OSRM (Open Source Routing Machine)**: High-performance routing engine for pathfinding.
+
+---
+
+## 🏗️ Architecture & Workflow
+
+### API Workflow
+1. **Request**: User inputs destination or requests nearby stations.
+2. **Geocoding**: Maps API converts addresses to coordinates.
+3. **Routing**: OSRM calculates the optimal path considering station proximity.
+4. **Data Sync**: Backend queries MySQL for verified station metadata (pricing, ports).
+5. **Render**: Frontend displays the layer-based map with interactive markers.
 
 ```mermaid
-graph TD
-    User((User / Owner / Admin))
-    User -->|Browser| Frontend[React.js SPA\nPort 3000]
-    Frontend -->|REST API + WebSocket| Backend[Node.js + Express\nPort 5000]
-    Backend -->|SQL Queries| DB[(MySQL Database\nev_assistant)]
-    Backend -->|Geocoding / Routing| OSM[OpenStreetMap\nNominatim API]
-    Backend -->|Email OTP| SMTP[Gmail SMTP\nNodemailer]
-    Backend -->|Verify Token| JWT[JWT Middleware]
-```
-
-### Layer Responsibilities
-| Layer | Technology | Role |
-|---|---|---|
-| **Frontend** | React.js, CSS | SPA — UI rendering, state management, API calls |
-| **Backend** | Node.js, Express.js | REST API, business logic, WebSocket for live station status |
-| **Database** | MySQL (`mysql2`) | Persistent storage — users, stations, bookings, reviews |
-| **Auth** | JSON Web Tokens | Stateless authentication with role-based access control |
-| **Maps** | OpenStreetMap / Nominatim | Address geocoding and route distance calculations |
-| **Email** | Nodemailer + Gmail SMTP | OTP delivery for password/email changes and reset |
-
----
-
-## 🧠 4. Algorithms Used
-
-### 📐 Haversine Formula
-Calculates the shortest distance between two GPS coordinates on the Earth's surface.
-
-```
-a = sin²(Δlat/2) + cos(lat1) × cos(lat2) × sin²(Δlon/2)
-distance = 2 × R × atan2(√a, √(1−a))       where R = 6371 km
-```
-
-**Applied in:**
-- Finding charging stations within a user-defined radius
-- Calculating if a route distance is within the vehicle's current range
-- Sorting stations by proximity in the map view
-
-### ⚙️ Route Feasibility Logic
-```javascript
-const rangeKm = (batteryPercent / 100) * batteryCapacityKwh / efficiencyKwhPerKm;
-const isFeasible = rangeKm >= routeDistanceKm;
-
-if (!isFeasible) {
-  // Trigger station suggestion — find stations reachable along the route
-}
+graph LR
+  A[Frontend - React] --> B[Backend - Express]
+  B --> C[(MySQL Database)]
+  B --> D[Maps API]
+  B --> E[OSRM Routing Service]
+  D --> A
+  E --> A
 ```
 
 ---
 
-## 👥 5. User Roles & Access
-
-| Role | Registration | Verification | Key Capabilities |
-| :--- | :--- | :--- | :--- |
-| **👤 User** | Self-register | Auto-verified | Route planning, booking, EV garage |
-| **🏠 Owner** | Self-register | Admin must approve | Station management, revenue dashboard |
-| **🔑 Admin** | Seeded by system | N/A | Full platform control |
-
----
-
-## 📊 6. Database Schema (MySQL)
-
-### Tables Overview
-
-| Table | Purpose |
-| :--- | :--- |
-| `users` | All accounts — users, owners, and admins |
-| `charging_stations` | Owner-registered EV charging hubs |
-| `connectors` | Individual charging ports per station |
-| `bookings` | Slot reservations by users at stations |
-| `vehicles` | User's saved EV specs |
-| `station_reviews` | Ratings and comments per station |
-| `password_resets` | Tokens for forgot-password flow |
-| `password_change_otps` | OTPs for authenticated password changes |
-| `email_change_otps` | OTPs for authenticated email changes |
-| `usage_events` | Lightweight analytics (route planner usage) |
-
-> 📄 Full schema: [`backend/schema.sql`](./backend/schema.sql)
+## 💡 Real World Use Case
+**The "Weekend Explorer" Scenario:**  
+Imagine a user planning a 300km trip from the city to a remote hillside. Their EV range is 220km. 
+1. The user enters their destination in **EV Smart Assistant**.
+2. The app identifies that the range is insufficient.
+3. It automatically suggests two high-speed charging stops midway, integrated into the navigation.
+4. The user arrives safely without ever worrying about their battery level.
 
 ---
 
-## ⚙️ 7. Installation & Setup
-
-### Prerequisites
-| Tool | Version |
-|---|---|
-| Node.js | v16+ |
-| npm | v8+ |
-| MySQL | v8+ (XAMPP / WAMP / native) |
+## 🧠 Challenges Solved
+- **Asynchronous Data Handling**: Synchronizing multi-source API responses (Maps + OSRM + Database) without blocking the UI main thread.
+- **Geospatial Queries**: Implementing efficient SQL queries to find stations within a specific radius using the Haversine formula.
+- **Complex Routing**: Customizing OSRM parameters to favor routes with higher station density.
 
 ---
 
-### Step 1 — Clone the Repository
-```bash
-git clone https://github.com/yourusername/ev-smart-assistant.git
-cd ev-smart-assistant
-```
+## 📂 Folder Structure
 
-### Step 2 — Install All Dependencies
-```bash
-npm run install-all
-```
-This installs packages for the root, backend, and frontend in one command.
-
-### Step 3 — Create the MySQL Database
-Open MySQL (phpMyAdmin / CLI) and create the database:
-```sql
-CREATE DATABASE ev_assistant;
-```
-
-### Step 4 — Configure Environment Variables
-Create `backend/.env` (copy from `.env.example` if provided):
-```env
-# Server
-PORT=5000
-
-# MySQL Database
-DB_HOST=localhost
-DB_PORT=3306
-DB_USER=root
-DB_PASSWORD=
-DB_NAME=ev_assistant
-
-# Startup — auto-creates all tables on first run
-DB_BOOTSTRAP=true
-DB_SEED_ADMIN=true
-
-# Security — change this in production!
-JWT_SECRET=your-super-secret-jwt-key
-
-# Email (Gmail App Password — for OTPs and password reset)
-MAIL_USER=your_email@gmail.com
-MAIL_PASS=your_gmail_app_password
-```
-
-### Step 5 — Run the Application
-```bash
-# Starts both backend (port 5000) and frontend (port 3000) together
-npm run dev
-```
-
-### Utility Scripts
-```bash
-# Run database migrations (adds new columns/tables safely)
-cd backend && npm run migrate
-
-# Reset or create the default admin account
-cd backend && npm run reset-admin
-```
-
-### Default Admin Credentials
-After first run (with `DB_SEED_ADMIN=true`):
-- **Email:** `admin@evassistant.com`
-- **Password:** `Admin@123`
-
-> ⚠️ Change these immediately after first login.
-
----
-
-## 📁 8. Project Structure
-
-```
-ev-smart-assistant/
-│
-├── frontend/                  # React.js SPA
+```text
+EV-Smart-Assistant/
+├── client/                 # React Frontend
+│   ├── public/             # Static assets
 │   └── src/
-│       ├── components/        # Reusable UI components (Navbar, Modals)
-│       ├── context/           # AuthContext (global auth state)
-│       └── pages/             # Route-level pages (Home, Dashboard, Stations…)
-│
-├── backend/                   # Node.js + Express REST API
-│   ├── config/
-│   │   └── database.js        # MySQL pool & query helper
-│   ├── middleware/
-│   │   └── auth.js            # JWT authentication & role authorization
-│   ├── routes/
-│   │   ├── auth.js            # Register, login, OTP, password reset
-│   │   ├── stations.js        # Station CRUD, search, reviews
-│   │   ├── bookings.js        # Booking creation & management
-│   │   ├── admin.js           # Admin-only moderation APIs
-│   │   ├── vehicles.js        # User vehicle garage
-│   │   └── calculator.js      # Range calculator & route feasibility
-│   ├── schema.sql             # Full MySQL database schema
-│   ├── migrate.js             # Database migration utility
-│   ├── reset_admin.js         # Admin account seeder
-│   └── server.js              # App entry point + WebSocket server
-│
-├── .gitignore
-├── package.json               # Root scripts (dev, install-all)
+│       ├── components/     # Reusable UI components
+│       ├── pages/          # Full page views
+│       └── utils/          # API helpers and constants
+├── server/                 # Node/Express Backend
+│   ├── config/             # DB and API configurations
+│   ├── controllers/        # Request logic
+│   ├── routes/             # API endpoints
+│   └── models/             # MySQL schema definitions
+├── .env.example            # Environment variables template
 └── README.md
 ```
 
 ---
 
-## 🔮 9. Future Enhancements
+## 🛠️ Installation & Setup
 
-- **🧠 AI Route Optimization** — Use ML to predict traffic & weather impact on battery drain
-- **📡 IoT Integration** — Live station status from real hardware sensors
-- **💳 Payment Gateway** — UPI / Stripe integration for seamless checkout
-- **📱 Mobile App** — React Native / Flutter companion app
-- **🌐 Multi-Language Support** — Hindi and regional language UI
+### Prerequisites
+- Node.js (v16+)
+- MySQL Server
+- API Key for Maps Service
+
+### 1. Clone the Repository
+```bash
+git clone https://github.com/Jeetbaraiya/EV-Smart-Assistant.git
+cd EV-Smart-Assistant
+```
+
+### 2. Backend Setup
+```bash
+cd server
+npm install
+# Create .env file based on .env.example
+npm start
+```
+
+### 3. Frontend Setup
+```bash
+cd client
+npm install
+npm start
+```
+
+---
+
+## 🔐 Environment Variables
+
+Create a `.env` file in the root of both `client` and `server` folders:
+
+| Variable | Description |
+| :--- | :--- |
+| `DB_HOST` | MySQL database host |
+| `DB_USER` | MySQL database username |
+| `DB_PASS` | MySQL database password |
+| `MAPS_API_KEY` | Your Google/Leaflet Maps API Key |
+| `OSRM_BASE_URL` | Endpoint for OSRM service |
+| `JWT_SECRET` | Secret key for user sessions |
 
 ---
 
-## 🎓 10. Academic Value (MCA Final Year)
-
-This project demonstrates a wide range of skills relevant to a Master of Computer Applications degree:
-
-| Domain | Implementation |
-|---|---|
-| **Full-Stack Development** | React.js frontend + Node.js/Express backend + MySQL |
-| **Database Design** | Normalized relational schema with foreign keys and constraints |
-| **Algorithms** | Haversine formula for geospatial distance calculation |
-| **System Security** | JWT auth, OTP verification, bcrypt password hashing, CORS |
-| **API Design** | RESTful endpoints with role-based middleware guards |
-| **Real-Time Systems** | WebSocket-based live station status updates |
-| **Third-Party APIs** | OpenStreetMap Nominatim for geocoding |
-| **Software Engineering** | Modular code structure, `.env` separation of concerns |
+## 📸 Screenshots
+<div align="center">
+  <p><i>Dashboard & Map View (Placeholder)</i></p>
+  <img src="https://via.placeholder.com/800x450?text=Dashboard+UI+Preview" width="80%" />
+  <p><i>Route Optimization Interface (Placeholder)</i></p>
+  <img src="https://via.placeholder.com/800x450?text=Navigation+Feature+Preview" width="80%" />
+</div>
 
 ---
 
-## 📜 11. License
+## 🚢 Deployment
 
-Distributed under the **MIT License**. See `LICENSE` for more information.
+### Vercel (Frontend)
+1. Push your code to GitHub.
+2. Connect your repo to [Vercel](https://vercel.com).
+3. Set the `Build Command` to `npm run build` and `Output Directory` to `dist` or `build`.
+4. Add your Environment Variables in the Vercel dashboard.
+
+### Backend
+The backend can be deployed on **Render** or **Heroku** with a managed MySQL instance (like Aiven or PlanetScale).
 
 ---
+
+## 🧪 Testing
+```bash
+# Run backend tests
+npm test --prefix server
+
+# Run frontend tests
+npm test --prefix client
+```
+
+---
+
+## 🤝 Contributing
+Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+---
+
+## 👨‍💻 Developer
+**Jeet Baraiya**  
+- GitHub: [@Jeetbaraiya](https://github.com/Jeetbaraiya)
+- Portfolio: [jeetbaraiya.com](https://jeetbaraiya.com)
+
+---
+
+## 📜 License
+Distributed under the MIT License. See `LICENSE` for more information.
 
 <div align="center">
-  <strong>Developed with ❤️ for MCA Final Year Project Submission — 2026</strong><br/>
-  <em>EV Smart Route & Charging Assistant</em>
+  <p>Made with ❤️ for a Greener Future</p>
 </div>
