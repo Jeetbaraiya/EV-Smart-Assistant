@@ -19,8 +19,16 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-const allowedOrigin = process.env.FRONTEND_URL || '*';
-app.use(cors({ origin: allowedOrigin }));
+app.use(cors({
+  origin: [
+    "https://evassist.vercel.app",
+    "http://localhost:5173",
+    "http://localhost:3000"
+  ],
+  credentials: true
+}));
+app.options("*", cors());
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
