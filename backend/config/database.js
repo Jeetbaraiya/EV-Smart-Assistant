@@ -150,7 +150,7 @@ const init = () => new Promise((resolve, reject) => {
     connectionLimit      : Number(process.env.DB_CONNECTION_LIMIT || 10),
     queueLimit           : 0,
     multipleStatements   : true,
-    connectTimeout       : Number(process.env.DB_CONNECT_TIMEOUT  || 10000),
+    connectTimeout       : Number(process.env.DB_CONNECT_TIMEOUT  || 3000),
     enableKeepAlive      : true,
     keepAliveInitialDelay: 0,
     timezone             : 'Z',
