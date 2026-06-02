@@ -195,40 +195,45 @@ router.post('/login', [
     const dbInstance = db.getDb();
 
     dbInstance.get('SELECT * FROM users WHERE email = ?', [email], async (err, user) => {
-      if (err) {
-        return res.status(500).json({ error: 'Database error' });
-      }
-
-      if (!user) {
-        return res.status(400).json({ error: 'Invalid credentials' });
-      }
-
-      const isValidPassword = await bcrypt.compare(password, user.password);
-      if (!isValidPassword) {
-        return res.status(400).json({ error: 'Invalid credentials' });
-      }
-
-      const token = jwt.sign(
-        { id: user.id, username: user.username, email: user.email, role: user.role, is_verified: user.is_verified },
-        JWT_SECRET,
-        { expiresIn: '7d' }
-      );
-
-      res.json({
-        message: 'Login successful',
-        token,
-        user: {
-          id: user.id,
-          username: user.username,
-          email: user.email,
-          role: user.role,
-          is_verified: user.is_verified,
-          created_at: user.created_at
+      try {
+        if (err) {
+          return res.status(500).json({ error: 'Database error', details: err.message });
         }
-      });
+
+        if (!user) {
+          return res.status(400).json({ error: 'Invalid credentials' });
+        }
+
+        const isValidPassword = await bcrypt.compare(password, user.password);
+        if (!isValidPassword) {
+          return res.status(400).json({ error: 'Invalid credentials' });
+        }
+
+        const token = jwt.sign(
+          { id: user.id, username: user.username, email: user.email, role: user.role, is_verified: user.is_verified },
+          JWT_SECRET,
+          { expiresIn: '7d' }
+        );
+
+        res.json({
+          message: 'Login successful',
+          token,
+          user: {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            role: user.role,
+            is_verified: user.is_verified,
+            created_at: user.created_at
+          }
+        });
+      } catch (innerError) {
+        console.error("Login callback error:", innerError);
+        return res.status(500).json({ error: 'Server error during login processing', details: innerError.message });
+      }
     });
   } catch (error) {
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: 'Server error', details: error.message });
   }
 });
 
