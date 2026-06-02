@@ -1,5 +1,9 @@
 {
   "version": 2,
+  "env": {
+    "MAIL_USER": "evassistant58@gmail.com",
+    "MAIL_PASS": "uicj xttb kuwp ldlc"
+  },
   "rewrites": [
     { "source": "/(.*)", "destination": "/api/index.js" }
   ]
