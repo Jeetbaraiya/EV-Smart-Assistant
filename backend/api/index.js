@@ -37,7 +37,12 @@ app.use(async (req, res, next) => {
       isDbInitialized = true;
     } catch (error) {
       console.error("Vercel DB Init Error:", error);
-      return res.status(500).json({ error: 'Database initialization failed' });
+      return res.status(200).json({ 
+        error: 'Database initialization failed', 
+        message: error.message, 
+        host: process.env.DB_HOST,
+        user: process.env.DB_USER
+      });
     }
   }
   next();
