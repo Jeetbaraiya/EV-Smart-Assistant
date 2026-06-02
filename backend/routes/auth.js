@@ -23,13 +23,13 @@ if (process.env.RESEND_API_KEY) {
   console.log('[mail] Resend loaded.');
 }
 
-// SMTP for local dev only
+// SMTP for local dev and Vercel fallback
 if (process.env.MAIL_USER && process.env.MAIL_PASS) {
   smtpTransporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com', port: 587, secure: false, family: 4,
+    host: 'smtp.gmail.com', port: 465, secure: true,
     auth: { user: process.env.MAIL_USER, pass: process.env.MAIL_PASS },
     tls: { rejectUnauthorized: false },
-    connectionTimeout: 15000, socketTimeout: 15000, greetingTimeout: 15000,
+    connectionTimeout: 10000, socketTimeout: 10000, greetingTimeout: 10000,
   });
 }
 
@@ -396,7 +396,7 @@ router.post('/request-password-change', authenticate, [
             res.json({ message: 'OTP sent to your registered email address.' });
           }).catch((error) => {
             console.error('Error sending OTP email:', error);
-            res.status(500).json({ error: 'Failed to send OTP email' });
+            res.status(500).json({ error: `Failed to send OTP email: ${error.message}` });
           });
         }
       );
@@ -503,7 +503,7 @@ router.post('/request-email-change', authenticate, [
               res.json({ message: 'OTP sent to your current email address.' });
             }).catch((error) => {
               console.error('Error sending OTP email:', error);
-              res.status(500).json({ error: 'Failed to send OTP email' });
+              res.status(500).json({ error: `Failed to send OTP email: ${error.message}` });
             });
           }
         );
