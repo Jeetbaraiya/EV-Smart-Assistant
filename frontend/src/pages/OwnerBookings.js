@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
-import './MyBookings.css'; // Reusing identical high-quality UI styles
+import './MyBookings.css';
 
 const STATUS_META = {
   confirmed: { icon: '✅', label: 'Confirmed', color: '#22c55e' },
@@ -9,13 +9,46 @@ const STATUS_META = {
   cancelled: { icon: '❌', label: 'Cancelled', color: '#ef4444' },
 };
 
+// ── Live Booking Toast Component ──────────────────────────────────
+const LiveBookingToast = ({ booking, onDismiss }) => (
+  <div style={{
+    position: 'fixed', bottom: '90px', right: '28px', zIndex: 9000,
+    background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+    color: '#fff', borderRadius: '16px', padding: '16px 20px',
+    boxShadow: '0 16px 50px rgba(99, 102, 241, 0.45)',
+    maxWidth: '320px', animation: 'toastSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)'
+  }}>
+    <style>{`
+      @keyframes toastSlideIn {
+        from { opacity: 0; transform: translateX(100px); }
+        to { opacity: 1; transform: translateX(0); }
+      }
+    `}</style>
+    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+      <span style={{ fontSize: '1.5rem', flexShrink: 0 }}>🔔</span>
+      <div style={{ flex: 1 }}>
+        <div style={{ fontWeight: 800, fontSize: '0.95rem', marginBottom: '4px' }}>New Booking!</div>
+        <div style={{ fontSize: '0.82rem', opacity: 0.9 }}>
+          {booking?.station_name || 'Your Station'} just got a new reservation.
+        </div>
+      </div>
+      <button onClick={onDismiss} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: '#fff', borderRadius: '8px', cursor: 'pointer', padding: '2px 8px', fontSize: '1rem' }}>×</button>
+    </div>
+    <button onClick={onDismiss} style={{ marginTop: '10px', width: '100%', background: 'rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.3)', color: '#fff', borderRadius: '10px', cursor: 'pointer', padding: '6px', fontWeight: 700, fontSize: '0.82rem' }}>✅ View Now</button>
+  </div>
+);
+
 const OwnerBookings = () => {
   const { getToken } = useAuth();
   const [bookings, setBookings]       = useState([]);
   const [loading, setLoading]         = useState(true);
   const [error, setError]             = useState('');
+  const [liveToast, setLiveToast]     = useState(null);
+  const wsRef = useRef(null);
+  const prevBookingCountRef = useRef(null);
 
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+  const WS_URL = (process.env.REACT_APP_API_URL || 'http://localhost:5000').replace('http', 'ws').replace('/api', '');
 
   const fetchOwnerBookings = useCallback(async () => {
     setLoading(true);
@@ -26,7 +59,14 @@ const OwnerBookings = () => {
       });
       const data = await res.json();
       if (res.ok) {
-        setBookings(data.bookings || []);
+        const newBookings = data.bookings || [];
+        // Detect new booking via count change (WS triggers this)
+        if (prevBookingCountRef.current !== null && newBookings.length > prevBookingCountRef.current) {
+          // Find the newest booking not in the previous set
+          setLiveToast(newBookings[0] || null);
+        }
+        prevBookingCountRef.current = newBookings.length;
+        setBookings(newBookings);
       } else {
         setError(data.error || 'Failed to fetch station bookings.');
       }
@@ -38,6 +78,32 @@ const OwnerBookings = () => {
   }, [API_URL, getToken]);
 
   useEffect(() => { fetchOwnerBookings(); }, [fetchOwnerBookings]);
+
+  // ── Real-time WebSocket — listen for station status updates to detect new bookings
+  useEffect(() => {
+    const connect = () => {
+      const ws = new WebSocket(WS_URL);
+      wsRef.current = ws;
+      ws.onmessage = (evt) => {
+        try {
+          const msg = JSON.parse(evt.data);
+          // On any station status update (slots changed = booking happened), refresh list
+          if (msg.type === 'station_status_update' || msg.type === 'station_status_snapshot') {
+            fetchOwnerBookings();
+          }
+        } catch {}
+      };
+      ws.onerror = () => {};
+      ws.onclose = () => {
+        // Reconnect after 5s if not intentionally closed
+        setTimeout(() => { if (wsRef.current?.readyState === WebSocket.CLOSED) connect(); }, 5000);
+      };
+    };
+    connect();
+    return () => {
+      if (wsRef.current) wsRef.current.close();
+    };
+  }, [WS_URL, fetchOwnerBookings]);
 
   // Handle specific formatting like "Tue, 7 Apr, 07:30 am" and append Z to enforce UTC.
   const fmt = (dateStr) => {
@@ -265,6 +331,14 @@ const OwnerBookings = () => {
             );
           })}
         </div>
+      )}
+
+      {/* Live Booking Toast */}
+      {liveToast && (
+        <LiveBookingToast
+          booking={liveToast}
+          onDismiss={() => { setLiveToast(null); fetchOwnerBookings(); }}
+        />
       )}
     </div>
   );

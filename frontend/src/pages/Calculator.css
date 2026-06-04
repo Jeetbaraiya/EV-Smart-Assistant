@@ -170,6 +170,24 @@
   line-height: 1.6;
 }
 
+/* Weather Banner */
+.weather-banner {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 14px;
+  padding: 8px 18px;
+  border-radius: 50px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  animation: fadeInDown 0.4s ease;
+}
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 /* ═══════════════════════════════════════════════
    GLASS CARD
 ═══════════════════════════════════════════════ */

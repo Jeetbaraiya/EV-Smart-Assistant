@@ -1,6 +1,33 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './Calculator.css';
 
+// ── Weather helper ───────────────────────────────────────────────
+// Uses Open-Meteo (free, no API key needed)
+const fetchWeatherForLocation = async (lat, lon) => {
+  try {
+    const res = await fetch(
+      `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weathercode&timezone=auto`
+    );
+    const data = await res.json();
+    const temp = data?.current?.temperature_2m;
+    const code = data?.current?.weathercode;
+    if (temp === undefined) return null;
+    // Weather penalty on efficiency (cold/hot weather drains more battery)
+    let efficiencyPenalty = 0;
+    let weatherLabel = '☀️ Clear';
+    let weatherColor = '#10b981';
+    if (temp < 5) { efficiencyPenalty = 20; weatherLabel = `🥶 Very Cold (${temp}°C)`; weatherColor = '#3b82f6'; }
+    else if (temp < 15) { efficiencyPenalty = 10; weatherLabel = `🌨️ Cold (${temp}°C)`; weatherColor = '#6366f1'; }
+    else if (temp > 40) { efficiencyPenalty = 15; weatherLabel = `🔥 Very Hot (${temp}°C)`; weatherColor = '#ef4444'; }
+    else if (temp > 32) { efficiencyPenalty = 8; weatherLabel = `☀️ Hot (${temp}°C)`; weatherColor = '#f59e0b'; }
+    else { weatherLabel = `🌤️ Comfortable (${temp}°C)`; }
+    if (code >= 61) { efficiencyPenalty += 5; weatherLabel = `🌧️ Rainy (${temp}°C)`; weatherColor = '#64748b'; }
+    return { temp, efficiencyPenalty, weatherLabel, weatherColor };
+  } catch {
+    return null;
+  }
+};
+
 const RangeCalculator = () => {
   const [formData, setFormData] = useState({
     batteryPercentage: '',
@@ -14,6 +41,8 @@ const RangeCalculator = () => {
   const [effectiveEfficiency, setEffectiveEfficiency] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [weather, setWeather] = useState(null);
+  const [weatherLoading, setWeatherLoading] = useState(false);
   const rangeResultRef = useRef(null);
   const destResultRef = useRef(null);
   const [showDestinationCheck, setShowDestinationCheck] = useState(false);
@@ -22,6 +51,20 @@ const RangeCalculator = () => {
   const [destinationLoading, setDestinationLoading] = useState(false);
   const [destinationError, setDestinationError] = useState('');
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+
+  // Auto-fetch weather on mount using geolocation
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+    setWeatherLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const w = await fetchWeatherForLocation(pos.coords.latitude, pos.coords.longitude);
+        setWeather(w);
+        setWeatherLoading(false);
+      },
+      () => setWeatherLoading(false)
+    );
+  }, []);
 
   const handleChange = (e) => {
     let { name, value } = e.target;
@@ -57,13 +100,19 @@ const RangeCalculator = () => {
     e.preventDefault();
     setError(''); setLoading(true); setResult(null); setEffectiveEfficiency(null);
     try {
+      // Apply weather efficiency penalty on top of existing calculation
+      const weatherPenaltyFactor = weather?.efficiencyPenalty > 0
+        ? 1 + (weather.efficiencyPenalty / 100)
+        : 1;
+      const adjustedEfficiency = parseFloat(formData.efficiency) * weatherPenaltyFactor;
+
       const res = await fetch(`${API_URL}/calculator/predict-range`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           batteryPercentage: parseFloat(formData.batteryPercentage),
           batteryCapacity: parseFloat(formData.batteryCapacity),
-          efficiency: parseFloat(formData.efficiency),
+          efficiency: adjustedEfficiency,
           speedKmph: parseFloat(formData.speedKmph),
           trafficLevel: formData.trafficLevel,
           drivingStyle: formData.drivingStyle
@@ -133,6 +182,27 @@ const RangeCalculator = () => {
           <div className="calc-header-icon">🔋</div>
           <h2>Battery Range Calculator</h2>
           <p>Get an AI-adjusted range estimate factoring in weather, traffic, and your driving style.</p>
+          {/* Live Weather Banner */}
+          {weatherLoading && (
+            <div className="weather-banner" style={{ background: '#f1f5f9', color: '#64748b' }}>
+              📡 Fetching local weather data...
+            </div>
+          )}
+          {!weatherLoading && weather && (
+            <div className="weather-banner" style={{ background: `${weather.weatherColor}18`, border: `1px solid ${weather.weatherColor}40`, color: weather.weatherColor }}>
+              <span style={{ fontWeight: 700 }}>{weather.weatherLabel}</span>
+              {weather.efficiencyPenalty > 0 && (
+                <span style={{ marginLeft: '8px', fontSize: '0.8rem', opacity: 0.85 }}>
+                  ⚠️ +{weather.efficiencyPenalty}% efficiency penalty applied
+                </span>
+              )}
+              {weather.efficiencyPenalty === 0 && (
+                <span style={{ marginLeft: '8px', fontSize: '0.8rem', opacity: 0.85 }}>
+                  ✅ Ideal conditions — no penalty
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
         {/* ── Split Layout ────────────────────────── */}

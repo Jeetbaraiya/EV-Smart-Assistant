@@ -290,7 +290,7 @@ const AdminBookings = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
             <div className="ab-header-icon"><IconBooking /></div>
             <div>
-              <h2 style={{ margin: 0 }}>📋 All Bookings</h2>
+              <h2 style={{ margin: 0 }}>All Bookings</h2>
               <p style={{ margin: 0 }}>Platform-wide booking records across all stations</p>
             </div>
           </div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import './Stations.css';
 import './Dashboard.css';
 import { useAuth } from '../context/AuthContext';
@@ -275,32 +275,34 @@ const Stations = () => {
     });
   };
 
-  const filteredStations = showLocationSearch && nearbyStations.length > 0
-    ? nearbyStations
-    : (() => {
-        // Add distance if location is set
-        if (userLocation) {
-          const withDistance = getStationsWithDistance(stations);
-          return withDistance.sort((a, b) => {
-            if (a.distance === null && b.distance === null) return 0;
-            if (a.distance === null) return 1;
-            if (b.distance === null) return -1;
-            return a.distance - b.distance;
-          });
-        }
-        return stations;
-      })();
-
-  const advancedFilteredStations = filteredStations.filter(station => {
-    if (advancedFilters.fastChargerOnly && Number(station.power_kw || 0) < 50) return false;
-    const status = station.status || station.availability || 'available';
-    if (advancedFilters.availableOnly && status !== 'available') return false;
-    if (advancedFilters.nearby10Only) {
-      if (station.distance == null) return false;
-      if (Number(station.distance) > 10) return false;
+  const filteredStations = useMemo(() => {
+    if (showLocationSearch && nearbyStations.length > 0) {
+      return nearbyStations;
     }
-    return true;
-  });
+    if (userLocation) {
+      const withDistance = getStationsWithDistance(stations);
+      return withDistance.sort((a, b) => {
+        if (a.distance === null && b.distance === null) return 0;
+        if (a.distance === null) return 1;
+        if (b.distance === null) return -1;
+        return a.distance - b.distance;
+      });
+    }
+    return stations;
+  }, [showLocationSearch, nearbyStations, userLocation, stations]); // getStationsWithDistance uses calculateDistance which is pure
+
+  const advancedFilteredStations = useMemo(() => {
+    return filteredStations.filter(station => {
+      if (advancedFilters.fastChargerOnly && Number(station.power_kw || 0) < 50) return false;
+      const status = station.status || station.availability || 'available';
+      if (advancedFilters.availableOnly && status !== 'available') return false;
+      if (advancedFilters.nearby10Only) {
+        if (station.distance == null) return false;
+        if (Number(station.distance) > 10) return false;
+      }
+      return true;
+    });
+  }, [filteredStations, advancedFilters]);
 
   const toggleReviewPanel = async (stationId) => {
     const key = String(stationId);

@@ -2,6 +2,7 @@ const express = require('express');
 const { body, validationResult } = require('express-validator');
 const db = require('../config/database');
 const { authenticate } = require('../middleware/auth');
+const { sendBookingConfirmationToUser, sendNewBookingAlertToOwner, sendCancellationEmail } = require('../services/emailService');
 
 const router = express.Router();
 
@@ -105,6 +106,43 @@ router.post('/', authenticate, [
     // 4. Create booking — connector_id is NULL for virtual bookings
     const realConnectorId = isVirtual ? null : connector_id;
 
+    // Helper: fire emails after a successful booking insert
+    const fireBookingEmails = (bookingId) => {
+      // Fetch full details needed for emails
+      dbInstance.get(
+        `SELECT u.email AS user_email, u.username AS user_name,
+                o.email AS owner_email, o.username AS owner_name,
+                s.name AS station_name, s.address AS station_address, s.city AS station_city
+         FROM bookings b
+         JOIN users u ON b.user_id = u.id
+         JOIN charging_stations s ON b.station_id = s.id
+         LEFT JOIN users o ON s.owner_id = o.id
+         WHERE b.id = ?`,
+        [bookingId],
+        (err, info) => {
+          if (err || !info) return;
+          const connType = connTypeLabel || (virtual_connector?.type) || null;
+          // Email to user
+          sendBookingConfirmationToUser({
+            userEmail: info.user_email, userName: info.user_name,
+            stationName: info.station_name, stationAddress: info.station_address,
+            stationCity: info.station_city, connectorType: connType,
+            startTime: sqlStart, endTime: sqlEnd,
+            durationMinutes: duration_minutes, totalPrice: total_price
+          });
+          // Email to owner
+          if (info.owner_email) {
+            sendNewBookingAlertToOwner({
+              ownerEmail: info.owner_email, ownerName: info.owner_name,
+              stationName: info.station_name, userName: info.user_name,
+              userEmail: info.user_email, connectorType: connType,
+              startTime: sqlStart, endTime: sqlEnd, totalPrice: total_price
+            });
+          }
+        }
+      );
+    };
+
     dbInstance.run(
       `INSERT INTO bookings
          (station_id, user_id, connector_id, connector_type_label, start_time, end_time, energy_kwh, total_price, status)
@@ -125,6 +163,7 @@ router.post('/', authenticate, [
                   error: `Booking failed: ${err2.message || 'Unknown error'}`
                 });
               }
+              fireBookingEmails(this.lastID);
               res.status(201).json({
                 message: 'Booking confirmed!',
                 booking: { id: this.lastID, station_id, start_time: sqlStart, end_time: sqlEnd, status: 'confirmed' }
@@ -133,6 +172,7 @@ router.post('/', authenticate, [
           );
           return;
         }
+        fireBookingEmails(this.lastID);
         res.status(201).json({
           message: 'Booking confirmed!',
           booking: { id: this.lastID, station_id, start_time: sqlStart, end_time: sqlEnd, status: 'confirmed' }
@@ -352,6 +392,21 @@ router.delete('/:id', authenticate, (req, res) => {
           console.error('Cancellation error:', err);
           return res.status(500).json({ error: 'Cancellation failed' });
         }
+        // Send cancellation email (fire-and-forget)
+        dbInstance.get(
+          `SELECT u.email AS user_email, u.username AS user_name, s.name AS station_name, b.start_time
+           FROM bookings b JOIN users u ON b.user_id = u.id
+           JOIN charging_stations s ON b.station_id = s.id WHERE b.id = ?`,
+          [id],
+          (emailErr, info) => {
+            if (!emailErr && info) {
+              sendCancellationEmail({
+                userEmail: info.user_email, userName: info.user_name,
+                stationName: info.station_name, startTime: info.start_time
+              });
+            }
+          }
+        );
         res.json({ message: 'Booking cancelled successfully' });
       }
     );
