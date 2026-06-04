@@ -176,8 +176,13 @@ const init = () => new Promise((resolve, reject) => {
     }
     console.log('[db] Connected successfully.');
 
-    // Always ensure schema is up-to-date (all statements use IF NOT EXISTS — safe to run every startup)
-    createTables().then(resolve).catch(reject);
+    // Skip heavy schema checks in production unless explicitly requested to save Vercel cold-start time
+    if (toBool(process.env.DB_BOOTSTRAP)) {
+      console.log('[db] Running schema checks (DB_BOOTSTRAP=true)...');
+      createTables().then(resolve).catch(reject);
+    } else {
+      resolve();
+    }
   });
 });
 
