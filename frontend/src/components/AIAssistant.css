@@ -322,15 +322,16 @@
 }
 
 /* ── Mobile Responsive ────────────────────────────────────────── */
-@media (max-width: 480px) {
+@media (max-width: 768px) {
   .volt-chat {
     right: 12px;
     left: 12px;
     width: auto;
-    bottom: 90px;
+    bottom: 155px; /* Safely above the raised FAB */
+    max-height: 70vh;
   }
   .volt-fab {
-    bottom: 20px;
-    right: 20px;
+    bottom: 85px; /* Safely above the mobile bottom navigation bar */
+    right: 16px;
   }
 }
