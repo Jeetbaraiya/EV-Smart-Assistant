@@ -15,11 +15,9 @@ const connectorRoutes = require('../routes/connectors');
 const app = express();
 
 app.use(cors({
-  origin: [
-    "https://evassist.vercel.app",
-    "http://localhost:5173",
-    "http://localhost:3000"
-  ],
+  origin: (origin, callback) => {
+    callback(null, true);
+  },
   credentials: true
 }));
 app.options("*", cors());
