@@ -11,6 +11,7 @@ const indiaStationsRoutes = require('../routes/indiaStations');
 const vehicleRoutes = require('../routes/vehicles');
 const bookingRoutes = require('../routes/bookings');
 const connectorRoutes = require('../routes/connectors');
+const aiRoutes = require('../routes/ai');
 
 const app = express();
 
@@ -50,6 +51,7 @@ app.use('/api/india-stations', indiaStationsRoutes.router || indiaStationsRoutes
 app.use('/api/vehicles', vehicleRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/connectors', connectorRoutes);
+app.use('/api/ai', aiRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
