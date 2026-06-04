@@ -1,0 +1,336 @@
+/* ═══════════════════════════════════════════════════════════════
+   Volt AI Assistant — Floating Chat Widget Styles
+═══════════════════════════════════════════════════════════════ */
+
+/* ── FAB Button ──────────────────────────────────────────────── */
+.volt-fab {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: 9999;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 32px rgba(99, 102, 241, 0.45);
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+  outline: none;
+}
+.volt-fab:hover {
+  transform: scale(1.1);
+  box-shadow: 0 12px 40px rgba(99, 102, 241, 0.55);
+}
+.volt-fab--open {
+  background: linear-gradient(135deg, #475569 0%, #334155 100%);
+  box-shadow: 0 8px 24px rgba(71, 85, 105, 0.4);
+  transform: rotate(0deg);
+}
+.volt-fab--pulse {
+  animation: voltPulse 1.5s ease-in-out infinite;
+}
+@keyframes voltPulse {
+  0%, 100% { box-shadow: 0 8px 32px rgba(99, 102, 241, 0.45); }
+  50% { box-shadow: 0 8px 48px rgba(99, 102, 241, 0.75); }
+}
+.volt-fab__badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 12px;
+  height: 12px;
+  background: #ef4444;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  animation: badgeBounce 0.4s ease;
+}
+@keyframes badgeBounce {
+  0% { transform: scale(0); }
+  60% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+
+/* ── Chat Window ──────────────────────────────────────────────── */
+.volt-chat {
+  position: fixed;
+  bottom: 100px;
+  right: 28px;
+  z-index: 9998;
+  width: 380px;
+  max-height: 580px;
+  background: #fff;
+  border-radius: 24px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(99, 102, 241, 0.1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  /* closed state */
+  opacity: 0;
+  transform: translateY(20px) scale(0.95);
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform-origin: bottom right;
+}
+.volt-chat--open {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: all;
+}
+
+/* ── Header ───────────────────────────────────────────────────── */
+.volt-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  flex-shrink: 0;
+}
+.volt-header__avatar {
+  width: 38px;
+  height: 38px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.volt-header__info { flex: 1; min-width: 0; }
+.volt-header__info h3 {
+  color: #fff;
+  font-size: 15px;
+  font-weight: 800;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.volt-header__badge {
+  background: rgba(255,255,255,0.25);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 6px;
+  letter-spacing: 0.5px;
+}
+.volt-header__status {
+  color: rgba(255,255,255,0.8);
+  font-size: 11px;
+  display: block;
+  margin-top: 1px;
+}
+.volt-header__actions { display: flex; gap: 6px; }
+.volt-icon-btn {
+  background: rgba(255,255,255,0.15);
+  border: none;
+  cursor: pointer;
+  color: #fff;
+  border-radius: 8px;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+.volt-icon-btn:hover { background: rgba(255,255,255,0.25); }
+
+/* ── Messages ─────────────────────────────────────────────────── */
+.volt-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: #f8fafc;
+  scroll-behavior: smooth;
+  overscroll-behavior: contain;
+}
+.volt-messages::-webkit-scrollbar { width: 4px; }
+.volt-messages::-webkit-scrollbar-track { background: transparent; }
+.volt-messages::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 4px; }
+
+.volt-msg {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  animation: msgSlideIn 0.25s ease;
+}
+@keyframes msgSlideIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.volt-msg--user {
+  flex-direction: row-reverse;
+}
+.volt-msg__avatar {
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+.volt-msg__bubble {
+  max-width: 80%;
+}
+.volt-msg--user .volt-msg__bubble {
+  align-items: flex-end;
+  display: flex;
+  flex-direction: column;
+}
+.volt-msg__content {
+  padding: 10px 14px;
+  border-radius: 16px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  word-break: break-word;
+}
+.volt-msg--assistant .volt-msg__content {
+  background: #fff;
+  color: #1e293b;
+  border: 1px solid #e2e8f0;
+  border-bottom-left-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.volt-msg--user .volt-msg__content {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: #fff;
+  border-bottom-right-radius: 4px;
+}
+.volt-msg__time {
+  font-size: 10px;
+  color: #94a3b8;
+  margin-top: 4px;
+  padding: 0 4px;
+}
+
+/* ── Typing Indicator ─────────────────────────────────────────── */
+.volt-typing {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  padding: 14px 18px;
+}
+.volt-typing span {
+  width: 7px;
+  height: 7px;
+  background: #6366f1;
+  border-radius: 50%;
+  animation: typingBounce 1.2s infinite ease-in-out;
+  opacity: 0.4;
+}
+.volt-typing span:nth-child(1) { animation-delay: 0s; }
+.volt-typing span:nth-child(2) { animation-delay: 0.2s; }
+.volt-typing span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typingBounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-6px); opacity: 1; }
+}
+
+/* ── Suggestion Chips ─────────────────────────────────────────── */
+.volt-suggestions {
+  padding: 8px 12px 4px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  background: #f8fafc;
+  border-top: 1px solid #f1f5f9;
+  flex-shrink: 0;
+}
+.volt-suggestion-chip {
+  background: #fff;
+  border: 1.5px solid #e2e8f0;
+  color: #4f46e5;
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+.volt-suggestion-chip:hover {
+  background: #ede9fe;
+  border-color: #6366f1;
+  transform: translateY(-1px);
+}
+
+/* ── Input Area ───────────────────────────────────────────────── */
+.volt-input-area {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #fff;
+  border-top: 1px solid #f1f5f9;
+  align-items: flex-end;
+  flex-shrink: 0;
+}
+.volt-input {
+  flex: 1;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 10px 14px;
+  font-size: 13.5px;
+  font-family: inherit;
+  color: #1e293b;
+  resize: none;
+  outline: none;
+  max-height: 100px;
+  transition: border-color 0.2s;
+  background: #f8fafc;
+  line-height: 1.5;
+}
+.volt-input:focus {
+  border-color: #6366f1;
+  background: #fff;
+}
+.volt-send-btn {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  border: none;
+  border-radius: 12px;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+.volt-send-btn:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+}
+.volt-send-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ── Mobile Responsive ────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .volt-chat {
+    right: 12px;
+    left: 12px;
+    width: auto;
+    bottom: 90px;
+  }
+  .volt-fab {
+    bottom: 20px;
+    right: 20px;
+  }
+}
