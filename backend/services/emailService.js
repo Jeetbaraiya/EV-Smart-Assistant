@@ -1,15 +1,75 @@
 const nodemailer = require('nodemailer');
 
-// ── Transporter ──────────────────────────────────────────────────────────────
-const createTransporter = () => {
-  if (!process.env.MAIL_USER || !process.env.MAIL_PASS) {
-    console.warn('[EmailService] MAIL_USER or MAIL_PASS not set. Email notifications disabled.');
-    return null;
-  }
-  return nodemailer.createTransport({
-    service: 'gmail',
-    auth: { user: process.env.MAIL_USER, pass: process.env.MAIL_PASS }
+const { Resend } = require('resend');
+
+// ── Email sender setup ───────────────────────────────────────────────────────
+// Railway blocks ALL outbound SMTP ports (25, 465, 587). Vercel is also strict.
+// Using HTTP-based providers (Brevo, Resend) as primary.
+
+let resend = null;
+let smtpTransporter = null;
+
+if (process.env.RESEND_API_KEY) {
+  resend = new Resend(process.env.RESEND_API_KEY);
+}
+
+if (process.env.MAIL_USER && process.env.MAIL_PASS) {
+  smtpTransporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com', port: 465, secure: true,
+    auth: { user: process.env.MAIL_USER, pass: process.env.MAIL_PASS },
+    tls: { rejectUnauthorized: false },
+    connectionTimeout: 10000, socketTimeout: 10000, greetingTimeout: 10000,
   });
+}
+
+const sendViaBrevo = async ({ to, subject, html }) => {
+  const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: {
+      'api-key': process.env.BREVO_API_KEY,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+    body: JSON.stringify({
+      sender: {
+        name: 'EV Assistant',
+        email: process.env.BREVO_SENDER || process.env.MAIL_USER || 'noreply@evassistant.com',
+      },
+      to: [{ email: to }],
+      subject,
+      htmlContent: html,
+    }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.message || `Brevo HTTP ${res.status}`);
+  }
+};
+
+const sendMail = async ({ to, subject, html }) => {
+  if (process.env.BREVO_API_KEY) {
+    await sendViaBrevo({ to, subject, html });
+    return;
+  }
+  if (resend) {
+    const sendTo = process.env.RESEND_OVERRIDE_TO || to;
+    const result = await resend.emails.send({
+      from: 'EV Assistant <onboarding@resend.dev>',
+      to: sendTo, subject, html,
+    });
+    if (result.error) throw new Error(result.error.message);
+    return;
+  }
+  if (smtpTransporter) {
+    await new Promise((resolve, reject) => {
+      smtpTransporter.sendMail(
+        { from: `EV Assistant <${process.env.MAIL_USER}>`, to, subject, html },
+        (err) => err ? reject(err) : resolve()
+      );
+    });
+    return;
+  }
+  throw new Error('No email provider configured.');
 };
 
 // ── HTML Template Helper ─────────────────────────────────────────────────────
@@ -84,8 +144,6 @@ const fmtDate = (dateStr) => {
  * Send booking confirmation email to the EV driver (user).
  */
 const sendBookingConfirmationToUser = async ({ userEmail, userName, stationName, stationAddress, stationCity, connectorType, startTime, endTime, durationMinutes, totalPrice }) => {
-  const transporter = createTransporter();
-  if (!transporter) return { sent: false, reason: 'Email service not configured' };
 
   const body = `
     <h2>Hey ${userName || 'there'} 👋, your slot is confirmed!</h2>
@@ -122,8 +180,7 @@ const sendBookingConfirmationToUser = async ({ userEmail, userName, stationName,
   `;
 
   try {
-    await transporter.sendMail({
-      from: `"EV Smart Assistant ⚡" <${process.env.MAIL_USER}>`,
+    await sendMail({
       to: userEmail,
       subject: `✅ Booking Confirmed — ${stationName}`,
       html: wrapInTemplate('Booking Confirmed!', body)
@@ -140,8 +197,6 @@ const sendBookingConfirmationToUser = async ({ userEmail, userName, stationName,
  * Send new booking alert email to the station owner.
  */
 const sendNewBookingAlertToOwner = async ({ ownerEmail, ownerName, stationName, userName, userEmail, connectorType, startTime, endTime, totalPrice }) => {
-  const transporter = createTransporter();
-  if (!transporter) return { sent: false, reason: 'Email service not configured' };
 
   const body = `
     <h2>New Booking at Your Station! 🎉</h2>
@@ -173,8 +228,7 @@ const sendNewBookingAlertToOwner = async ({ ownerEmail, ownerName, stationName, 
   `;
 
   try {
-    await transporter.sendMail({
-      from: `"EV Smart Assistant ⚡" <${process.env.MAIL_USER}>`,
+    await sendMail({
       to: ownerEmail,
       subject: `🔔 New Booking at ${stationName}`,
       html: wrapInTemplate('New Station Booking', body)
@@ -191,8 +245,6 @@ const sendNewBookingAlertToOwner = async ({ ownerEmail, ownerName, stationName, 
  * Send booking cancellation email to the user.
  */
 const sendCancellationEmail = async ({ userEmail, userName, stationName, startTime }) => {
-  const transporter = createTransporter();
-  if (!transporter) return { sent: false, reason: 'Email service not configured' };
 
   const body = `
     <h2>Booking Cancelled</h2>
@@ -211,8 +263,7 @@ const sendCancellationEmail = async ({ userEmail, userName, stationName, startTi
   `;
 
   try {
-    await transporter.sendMail({
-      from: `"EV Smart Assistant ⚡" <${process.env.MAIL_USER}>`,
+    await sendMail({
       to: userEmail,
       subject: `❌ Booking Cancelled — ${stationName}`,
       html: wrapInTemplate('Booking Cancelled', body)
